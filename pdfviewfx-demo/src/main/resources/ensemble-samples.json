@@ -1,0 +1,12 @@
+{
+  "samples": [
+    {
+      "category": "PDFViewFX",
+      "name": "PDF View",
+      "desc": "A view for displaying PDF files (based on Apache PDFBox).",
+      "project": "PDFViewFX",
+      "preview": "/preview-pdfview.png",
+      "classname": "com.dlsc.pdfviewfx.demo.PDFViewApp"
+    }
+  ]
+}
