@@ -6,6 +6,8 @@ import com.dlsc.pdfviewfx.PDFView.SearchResult;
 import com.dlsc.pdfviewfx.PDFView.SearchableDocument;
 import com.dlsc.unitfx.IntegerInputField;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -738,9 +740,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             group = new Group(wrapper);
             pane.getChildren().addAll(group);
 
-            viewportBoundsProperty().addListener(it -> {
-                final Bounds bounds = getViewportBounds();
-
+            viewportBoundsProperty().addListener((observable, oldBounds, newBounds) -> {
                 pane.setPrefWidth(Region.USE_COMPUTED_SIZE);
                 pane.setMinWidth(Region.USE_COMPUTED_SIZE);
 
@@ -749,16 +749,16 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
                 if (isPortrait()) {
 
-                    final double prefWidth = bounds.getWidth() * pdfView.getZoomFactor() - 5;
+                    final double prefWidth = newBounds.getWidth() * pdfView.getZoomFactor() - 5;
                     pane.setPrefWidth(prefWidth);
                     pane.setMinWidth(prefWidth);
 
                     if (pdfView.isShowAll()) {
-                        pane.setPrefHeight(bounds.getHeight() - 5);
+                        pane.setPrefHeight(newBounds.getHeight() - 5);
                     } else {
-                        Image image = getImage();
+                        final Image image = getImage();
                         if (image != null) {
-                            double scale = bounds.getWidth() / image.getWidth();
+                            double scale = newBounds.getWidth() / image.getWidth();
                             double scaledImageHeight = image.getHeight() * scale;
                             final double prefHeight = scaledImageHeight * pdfView.getZoomFactor();
                             pane.setPrefHeight(prefHeight);
@@ -772,16 +772,16 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                      * Image has been rotated.
                      */
 
-                    final double prefHeight = bounds.getHeight() * pdfView.getZoomFactor() - 5;
+                    final double prefHeight = newBounds.getHeight() * pdfView.getZoomFactor() - 5;
                     pane.setPrefHeight(prefHeight);
                     pane.setMinHeight(prefHeight);
 
                     if (pdfView.isShowAll()) {
-                        pane.setPrefWidth(bounds.getWidth() - 5);
+                        pane.setPrefWidth(newBounds.getWidth() - 5);
                     } else {
-                        Image image = getImage();
+                        final Image image = getImage();
                         if (image != null) {
-                            double scale = bounds.getHeight() / image.getWidth();
+                            double scale = newBounds.getHeight() / image.getWidth();
                             double scaledImageHeight = image.getHeight() * scale;
                             final double prefWidth = scaledImageHeight * pdfView.getZoomFactor();
                             pane.setPrefWidth(prefWidth);
@@ -798,7 +798,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             mainAreaRenderService.scaleProperty().bind(pdfView.pageScaleProperty().multiply(pdfView.zoomFactorProperty()));
             mainAreaRenderService.pageProperty().bind(pdfView.pageProperty());
             mainAreaRenderService.valueProperty().addListener(it -> {
-                Image image = mainAreaRenderService.getValue();
+                final Image image = mainAreaRenderService.getValue();
                 if (image != null) {
                     setImage(image);
                 }
