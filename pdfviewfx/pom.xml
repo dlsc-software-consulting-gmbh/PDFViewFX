@@ -17,7 +17,7 @@
     <packaging>jar</packaging>
 
     <name>PDFViewFX</name>
-    <description>A collection of JavaFX controls and utils.
+    <description>A PDF view for JavaFX applications.
     </description>
     <url>https://github.com/dlemmermann/PDFViewFX</url>
     <licenses>
