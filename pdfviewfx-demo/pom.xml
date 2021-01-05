@@ -5,21 +5,22 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>PDFViewDemo</name>
+    <version>1.0.2</version>
+    <groupId>com.dlsc.pdfviewfx</groupId>
+    <artifactId>pdfviewfx-demo</artifactId>
 
-    <version>1.0.0</version>
+    <packaging>jar</packaging>
 
     <parent>
         <groupId>com.dlsc.pdfviewfx</groupId>
         <artifactId>parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>pdfviewfx-demo</artifactId>
-
     <description>Demos for PDFViewFX</description>
 
-    <url>https://github.com/dlemmermann/PdfViewFX</url>
+    <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX</url>
     <licenses>
         <license>
             <name>Apache 2.0</name>
@@ -51,6 +52,14 @@
             <url>http://sandec.bintray.com/repo</url>
         </pluginRepository>
     </pluginRepositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.dlsc.pdfviewfx</groupId>
+            <artifactId>pdfviewfx</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -116,48 +125,4 @@
 
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.sandec.jpro</groupId>
-            <artifactId>jpro-webapi</artifactId>
-            <version>2020.1.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fr.brouillard.oss</groupId>
-            <artifactId>cssfx</artifactId>
-            <version>11.3.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dlsc.pdfviewfx</groupId>
-            <artifactId>pdfviewfx</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-web</artifactId>
-            <version>12.0.1</version>
-        </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.13.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.12.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>2.12.0</version>
-        </dependency>
-    </dependencies>
-
 </project>

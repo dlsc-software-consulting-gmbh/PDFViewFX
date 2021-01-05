@@ -8,9 +8,6 @@ module com.dlsc.pdfviewfx {
     requires com.dlsc.unitfx;
 
     requires java.logging;
-    requires java.prefs;
-
-    requires commons.validator;
 
     requires org.apache.pdfbox;
     requires org.apache.commons.lang3;

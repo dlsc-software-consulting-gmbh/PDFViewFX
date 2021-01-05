@@ -7,19 +7,20 @@
     <parent>
         <groupId>com.dlsc.pdfviewfx</groupId>
         <artifactId>parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.dlsc.pdfviewfx</groupId>
     <artifactId>pdfviewfx</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
 
     <name>PDFViewFX</name>
     <description>A PDF view for JavaFX applications.
     </description>
-    <url>https://github.com/dlemmermann/PDFViewFX</url>
+    <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX</url>
+
     <licenses>
         <license>
             <name>Apache 2.0</name>
@@ -52,21 +53,9 @@
         </dependency>
 
         <dependency>
-            <groupId>commons-validator</groupId>
-            <artifactId>commons-validator</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>2.0.18</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.squareup.retrofit2</groupId>
-            <artifactId>retrofit</artifactId>
-            <version>2.6.1</version>
+            <version>2.0.20</version>
         </dependency>
 
         <dependency>
@@ -79,24 +68,6 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-swing</artifactId>
             <version>${javafx.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-fxml</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>${jaxb.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>${jaxb.version}</version>
         </dependency>
 
         <dependency>
@@ -136,12 +107,6 @@
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-graphics</artifactId>
-            <version>${javafx.version}</version>
         </dependency>
 
     </dependencies>
