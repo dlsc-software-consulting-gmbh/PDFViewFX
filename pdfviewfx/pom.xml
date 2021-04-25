@@ -32,7 +32,7 @@
 
     <properties>
         <javafx.version>15</javafx.version>
-        <ikonli.version>11.5.0</ikonli.version>
+        <ikonli.version>12.2.0</ikonli.version>
         <jaxb.version>2.3.3</jaxb.version>
     </properties>
 

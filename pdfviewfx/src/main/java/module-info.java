@@ -1,7 +1,7 @@
 module com.dlsc.pdfviewfx {
     requires transitive javafx.controls;
 
-    requires org.kordamp.iconli.core;
+    requires org.kordamp.ikonli.core;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.materialdesign;
 
