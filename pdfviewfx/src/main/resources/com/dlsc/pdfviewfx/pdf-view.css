@@ -1,6 +1,9 @@
 .pdf-view {
 }
 
+/* ------------------------------------------------------------------
+ * Search Result List View
+ */
 .pdf-view .search-result-list-view {
     -fx-pref-width: 300;
 }
@@ -33,6 +36,9 @@
     -fx-font-size: .9em;
 }
 
+/* ------------------------------------------------------------------
+ * Thumbnail List View
+ */
 .pdf-view .thumbnail-list-view .list-cell {
     -fx-padding: 20 20 10 10;
     -fx-background-color: rgb(245, 245, 245) !important;
@@ -110,7 +116,6 @@
 }
 
 .pdf-view .search-navigator .search-bar-button .ikonli-font-icon {
-    -fx-icon-color: red;
 }
 
 .pdf-view .search-navigator .previous-search-result {
