@@ -152,7 +152,6 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         updatePagesList();
 
         final ToolBar toolBar = createToolBar(view);
-        toolBar.getStylesheets().add(PDFView.class.getResource("pdf-view.css").toExternalForm());
         toolBar.visibleProperty().bind(view.showToolBarProperty());
         toolBar.managedProperty().bind(view.showToolBarProperty());
 
