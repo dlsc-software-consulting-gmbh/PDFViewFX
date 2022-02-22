@@ -2,6 +2,13 @@ package com.dlsc.pdfviewfx;
 
 import com.dlsc.pdfviewfx.PDFView.Document.DocumentProcessingException;
 import com.dlsc.pdfviewfx.skins.PDFViewSkin;
+import javafx.beans.property.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Control;
+import javafx.scene.control.Skin;
+import javafx.scene.paint.Color;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -9,27 +16,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.FloatProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleFloatProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.control.Control;
-import javafx.scene.control.Skin;
-import javafx.scene.paint.Color;
 
 /**
  * A PDF viewer based on Apache PDFBox. The view shows thumbnails
@@ -75,6 +61,8 @@ public class PDFView extends Control {
 
             setSearchText(null);
         });
+
+        getStylesheets().add(getUserAgentStylesheet());
     }
 
     @Override

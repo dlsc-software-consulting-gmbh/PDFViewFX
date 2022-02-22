@@ -18,12 +18,12 @@
 
 .pdf-view .search-result-list-view .list-cell .matches-label {
     -fx-font-size: .9em;
-    -fx-text-fill: grey;
+    -fx-text-fill: -fx-text-background-color;
+    -fx-opacity: .5
 }
 
 .pdf-view .search-result-list-view:focused .list-cell:focused .matches-label,
 .pdf-view .search-result-list-view:focused .list-cell:selected .matches-label {
-    -fx-text-fill: white;
 }
 
 .pdf-view .search-result-list-view .list-cell .image-view-wrapper {
@@ -39,19 +39,31 @@
 /* ------------------------------------------------------------------
  * Thumbnail List View
  */
-.pdf-view .thumbnail-list-view .list-cell {
+.pdf-view .thumbnail-list-view .list-cell,
+.pdf-view .thumbnail-list-view:focused .list-cell {
+    -fx-background: rgb(245, 245, 245);
+    -fx-background-color: -fx-background;
     -fx-padding: 20 20 10 10;
-    -fx-background-color: rgb(245, 245, 245) !important;
+}
+
+.pdf-view .thumbnail-list-view .list-cell:odd,
+.pdf-view .thumbnail-list-view:focused .list-cell:odd {
+    -fx-background: rgb(245, 245, 245);
+    -fx-background-color: -fx-background;
 }
 
 .pdf-view .thumbnail-list-view .list-cell .page-number-label,
-.pdf-view .thumbnail-list-view .list-cell:selected .page-number-label {
-    -fx-text-fill: grey;
+.pdf-view .thumbnail-list-view:focused .list-cell .page-number-label,
+.pdf-view .thumbnail-list-view .list-cell:selected .page-number-label,
+.pdf-view .thumbnail-list-view:focused .list-cell:selected .page-number-label {
+    -fx-text-fill: -fx-text-background-color;
     -fx-font-size: 10px;
 }
 
-.pdf-view .thumbnail-list-view .list-cell:selected {
-    -fx-background-color: rgb(245, 245, 245) !important;
+.pdf-view .thumbnail-list-view .list-cell:selected,
+.pdf-view .thumbnail-list-view:focused .list-cell:selected {
+    -fx-background: rgb(245, 245, 245);
+    -fx-background-color: -fx-background;
 }
 
 .pdf-view .thumbnail-list-view {
@@ -70,17 +82,22 @@
     -fx-background-radius: 2px;
 }
 
+.pdf-view .label {
+    -fx-text-fill: -fx-text-background-color;
+}
+
 .pdf-view .tool-bar .search-field .ikonli-font-icon {
-    -fx-icon-color: gray;
+    -fx-opacity: .66;
+    -fx-icon-color: -fx-text-background-color;
     -fx-icon-size: 16px;
 }
 
 .pdf-view .tool-bar .search-field .ikonli-font-icon:hover {
-    -fx-icon-color: black;
+    -fx-opacity: 1;
 }
 
 .pdf-view .tool-bar .search-field .ikonli-font-icon:pressed {
-    -fx-icon-color: black;
+    -fx-opacity: 1;
 }
 
 .pdf-view .search-navigator {
@@ -92,7 +109,7 @@
 }
 
 .pdf-view .search-navigator .search-result-label {
-    -fx-text-fill: black;
+    -fx-text-fill: -fx-text-background-color;
 }
 
 .pdf-view .search-navigator .search-bar-button {
@@ -100,7 +117,7 @@
     -fx-background-radius: 2, 2;
     -fx-background-color: gray, -fx-base;
     -fx-background-insets: 0, 1 1 1 1;
-    -fx-text-fill: black;
+    -fx-text-fill: -fx-text-background-color;
 }
 
 .pdf-view .search-navigator .search-bar-button:hover {
@@ -137,7 +154,7 @@
 
 .pdf-view .tool-bar .tool-bar-button .ikonli-font-icon {
     -fx-icon-size: 18px;
-    -fx-icon-color: black;
+    -fx-icon-color: -fx-text-background-color;
 }
 
 .pdf-view .page-control .previous-page-button {

@@ -1,9 +1,7 @@
 package com.dlsc.pdfviewfx.demo;
 
 import com.dlsc.pdfviewfx.PDFView;
-
-import java.io.File;
-
+import fr.brouillard.oss.cssfx.CSSFX;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
@@ -17,6 +15,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
+
+import java.io.File;
 
 public class PDFViewApp extends Application {
 
@@ -67,6 +67,9 @@ public class PDFViewApp extends Application {
         box.setFillWidth(true);
 
         Scene scene = new Scene(box);
+
+        CSSFX.start(primaryStage);
+
         primaryStage.setTitle("PDF View");
         primaryStage.setWidth(1000);
         primaryStage.setHeight(900);
