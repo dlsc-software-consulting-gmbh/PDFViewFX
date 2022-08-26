@@ -5,10 +5,14 @@ import fr.brouillard.oss.cssfx.CSSFX;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
+
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -16,6 +20,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 
+import javax.swing.SwingUtilities;
 import java.io.File;
 
 public class PDFViewApp extends Application {
@@ -54,10 +59,32 @@ public class PDFViewApp extends Application {
         closeItem.setOnAction(evt -> pdfView.unload());
         closeItem.disableProperty().bind(Bindings.isNull(pdfView.documentProperty()));
 
+        MenuItem printItem = new MenuItem("Print PDF...");
+        printItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+p"));
+        printItem.setOnAction(evt -> {
+            SwingUtilities.invokeLater(() -> {
+                PDFView.Document pdfDoc = pdfView.getDocument();
+                if (pdfDoc != null) {
+                    PrinterJob job = PrinterJob.getPrinterJob();
+                    job.setPageable(pdfDoc.getPageable());
+                    if (job.printDialog()) {
+                        try {
+                            job.print();
+                        } catch (PrinterException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        });
+        printItem.disableProperty().bind(Bindings.isNull(pdfView.documentProperty()));
+
         Menu fileMenu = new Menu("File");
         ObservableList<MenuItem> fileMenuItems = fileMenu.getItems();
         fileMenuItems.add(loadItem);
         fileMenuItems.add(closeItem);
+        fileMenuItems.add(new SeparatorMenuItem());
+        fileMenuItems.add(printItem);
 
         MenuBar menuBar = new MenuBar(fileMenu);
         menuBar.setUseSystemMenuBar(false);

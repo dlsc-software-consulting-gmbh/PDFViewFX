@@ -11,6 +11,7 @@ import javafx.scene.control.Skin;
 import javafx.scene.paint.Color;
 
 import java.awt.image.BufferedImage;
+import java.awt.print.Pageable;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
@@ -513,6 +514,13 @@ public class PDFView extends Control {
          * @return true if the page has to be shown in landscape mode
          */
         boolean isLandscape(int pageNumber);
+
+        /**
+         * Returns a set of pages to be printed.
+         *
+         * @return a set of pages to be printed
+         */
+        Pageable getPageable();
 
         /**
          * Closes the document.
