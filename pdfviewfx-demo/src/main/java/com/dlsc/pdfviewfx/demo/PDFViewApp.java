@@ -26,7 +26,7 @@ public class PDFViewApp extends Application {
     public void start(Stage primaryStage) {
         PDFView pdfView = new PDFView();
 
-        MenuItem loadItem = new MenuItem("Load PDF ...");
+        MenuItem loadItem = new MenuItem("Load PDF...");
         loadItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+o"));
         loadItem.setOnAction(evt -> {
             if (chooser == null) {
@@ -49,7 +49,7 @@ public class PDFViewApp extends Application {
             e.printStackTrace();
         }
 
-        MenuItem closeItem = new MenuItem("Close PDF ...");
+        MenuItem closeItem = new MenuItem("Close PDF");
         closeItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+c"));
         closeItem.setOnAction(evt -> pdfView.unload());
         closeItem.disableProperty().bind(Bindings.isNull(pdfView.documentProperty()));
