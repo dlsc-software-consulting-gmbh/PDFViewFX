@@ -32,7 +32,7 @@ import javafx.geometry.Rectangle2D;
  */
 public class PDFBoxDocument implements SearchableDocument {
 
-    private PDDocument document;
+    private final PDDocument document;
 
     public PDFBoxDocument(InputStream pdfInputStream) {
         try {
