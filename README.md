@@ -12,4 +12,4 @@ The view has excellent built-in search capabilities.
 
 You can run the demos using Maven by typing the following line into your terminal:
 
-    mvn javafx:run -f pdfviewfx-demo/pom.xml -Dmain.class=com.dlsc.pdfviewfx.demo.PDFViewApp
+    mvn javafx:run -f pdfviewfx-demo/pom.xml
