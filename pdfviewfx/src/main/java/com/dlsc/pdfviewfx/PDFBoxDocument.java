@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.printing.PDFPageable;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.rendering.RenderDestination;
@@ -14,6 +15,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 
 import java.awt.image.BufferedImage;
+import java.awt.print.Pageable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +60,11 @@ public class PDFBoxDocument implements SearchableDocument {
         final PDPage page = document.getPage(pageNumber);
         final PDRectangle cropBox = page.getCropBox();
         return cropBox.getHeight() < cropBox.getWidth();
+    }
+
+    @Override
+    public Pageable getPageable() {
+        return new PDFPageable(document);
     }
 
     @Override

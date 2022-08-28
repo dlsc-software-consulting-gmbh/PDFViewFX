@@ -11,7 +11,7 @@ module com.dlsc.pdfviewfx {
 
     requires org.apache.pdfbox;
     requires org.apache.commons.lang3;
-    requires java.desktop;
+    requires transitive java.desktop;
     requires javafx.swing;
     requires org.controlsfx.controls;
 
