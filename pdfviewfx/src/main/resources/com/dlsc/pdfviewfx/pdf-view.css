@@ -10,6 +10,7 @@
 
 .pdf-view .search-result-list-view .list-cell {
     -fx-padding: 10;
+    -fx-text-fill: -fx-text-background-color;
 }
 
 .pdf-view .search-result-list-view .list-cell .page-label {
