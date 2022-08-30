@@ -45,7 +45,7 @@
     </scm>
 
     <properties>
-        <javafx.version>17.0.2</javafx.version>
+        <javafx.version>18.0.1</javafx.version>
         <ikonli.version>12.3.0</ikonli.version>
         <jaxb.version>2.3.3</jaxb.version>
         <project.identifier>gemsfx</project.identifier>
