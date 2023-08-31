@@ -18,4 +18,5 @@ module com.dlsc.pdfviewfx {
     requires org.controlsfx.controls;
 
     exports com.dlsc.pdfviewfx;
+    exports com.dlsc.pdfviewfx.skins;
 }
