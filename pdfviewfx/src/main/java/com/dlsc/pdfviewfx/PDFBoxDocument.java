@@ -2,8 +2,10 @@ package com.dlsc.pdfviewfx;
 
 import com.dlsc.pdfviewfx.PDFView.Document;
 import com.dlsc.pdfviewfx.PDFView.SearchableDocument;
-
+import javafx.geometry.Rectangle2D;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -23,8 +25,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.geometry.Rectangle2D;
-
 /**
  * An implementation of {@link Document} for the Apache PDFBox library.
  *
@@ -36,18 +36,14 @@ public class PDFBoxDocument implements SearchableDocument {
 
     public PDFBoxDocument(InputStream pdfInputStream) {
         try {
-            document = PDDocument.load(pdfInputStream);
+            document = Loader.loadPDF(pdfInputStream.readAllBytes());
         } catch (IOException e) {
             throw new DocumentProcessingException(e);
         }
     }
 
-    public PDFBoxDocument(File file) {
-        try {
-            document = PDDocument.load(file);
-        } catch (IOException e) {
-            throw new DocumentProcessingException(e);
-        }
+    public PDFBoxDocument(File file) throws IOException {
+        document = Loader.loadPDF(new RandomAccessReadBufferedFile(file));
     }
 
     @Override
@@ -57,8 +53,8 @@ public class PDFBoxDocument implements SearchableDocument {
 
     @Override
     public boolean isLandscape(int pageNumber) {
-        final PDPage page = document.getPage(pageNumber);
-        final PDRectangle cropBox = page.getCropBox();
+        PDPage page = document.getPage(pageNumber);
+        PDRectangle cropBox = page.getCropBox();
         return cropBox.getHeight() < cropBox.getWidth();
     }
 
@@ -84,32 +80,28 @@ public class PDFBoxDocument implements SearchableDocument {
     @Override
     public List<PDFView.SearchResult> getSearchResults(String searchText) {
 
-        final List<PDFView.SearchResult> results = new ArrayList<>();
+        List<PDFView.SearchResult> results = new ArrayList<>();
 
-        final PDFTextStripper stripper;
+        PDFTextStripper stripper;
 
-        try {
-            stripper = new PDFTextStripper() {
+        stripper = new PDFTextStripper() {
 
-                private int pageNumber = -1;
+            private int pageNumber = -1;
 
-                @Override
-                protected void startPage(PDPage page) {
-                    pageNumber++;
+            @Override
+            protected void startPage(PDPage page) {
+                pageNumber++;
+            }
+
+            @Override
+            protected void writeString(String text, List<TextPosition> textPositions) {
+                if (StringUtils.containsIgnoreCase(text, searchText)) {
+                    PDFView.SearchResult
+                            result = new PDFView.SearchResult(searchText, text, pageNumber, calculateMarkerPosition(searchText, text, textPositions));
+                    results.add(result);
                 }
-
-                @Override
-                protected void writeString(String text, List<TextPosition> textPositions) {
-                    if (StringUtils.containsIgnoreCase(text, searchText)) {
-                        PDFView.SearchResult
-                                result = new PDFView.SearchResult(searchText, text, pageNumber, calculateMarkerPosition(searchText, text, textPositions));
-                        results.add(result);
-                    }
-                }
-            };
-        } catch (IOException e) {
-            throw new DocumentProcessingException(e);
-        }
+            }
+        };
 
         Writer writer = new Writer() {
 
@@ -173,8 +165,8 @@ public class PDFBoxDocument implements SearchableDocument {
     }
 
     /**
-     * Note that number of textPositions might not be equal to the length of the snippetText.
-     * so we need to account for that.
+     * Note that the number of textPositions might not be equal to the length of the snippetText.
+     * So we need to account for that.
      * <p>
      * See: org.apache.pdfbox.text.PDFTextStripper.WordWithTextPositions
      */
