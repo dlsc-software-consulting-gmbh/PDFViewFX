@@ -65,8 +65,8 @@ public class PDFBoxDocument implements SearchableDocument {
 
     @Override
     public BufferedImage renderPage(int pageNumber, float scale) {
-        final PDFRenderer renderer = new PDFRenderer(document);
-        final BufferedImage bufferedImage;
+        PDFRenderer renderer = new PDFRenderer(document);
+        BufferedImage bufferedImage;
 
         try {
             bufferedImage = renderer.renderImage(pageNumber, scale, ImageType.ARGB, RenderDestination.VIEW);
@@ -140,7 +140,7 @@ public class PDFBoxDocument implements SearchableDocument {
     }
 
     private Rectangle2D calculateMarkerPosition(String searchText, String snippetText, List<TextPosition> textPositions) {
-        final int textPositionStartIndex = calculateTextPositionStartIndex(searchText, snippetText, textPositions);
+        int textPositionStartIndex = calculateTextPositionStartIndex(searchText, snippetText, textPositions);
 
         float x1 = Float.MAX_VALUE;
         float x2 = 0;
@@ -172,7 +172,7 @@ public class PDFBoxDocument implements SearchableDocument {
      */
     private int calculateTextPositionStartIndex(String searchText, String snippetText, List<TextPosition> textPositions) {
 
-        final int snippetTextStartIndex = snippetText.toLowerCase().indexOf(searchText.toLowerCase());
+        int snippetTextStartIndex = snippetText.toLowerCase().indexOf(searchText.toLowerCase());
 
         int startIndexDecreaseDelta = 0;
 

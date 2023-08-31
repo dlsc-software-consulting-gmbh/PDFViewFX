@@ -50,7 +50,7 @@ public class PDFView extends Control {
         });
 
         selectedSearchResultProperty().addListener(it -> {
-            final SearchResult result = getSelectedSearchResult();
+            SearchResult result = getSelectedSearchResult();
             if (result != null) {
                 setPage(result.getPageNumber());
             }
