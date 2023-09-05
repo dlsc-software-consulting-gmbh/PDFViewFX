@@ -1,3 +1,5 @@
+[![JFXCentral](https://img.shields.io/badge/Find_me_on-JFXCentral-blue?logo=googlechrome&logoColor=white)](https://www.jfx-central.com/libraries/pdfviewfx)
+
 # PDFViewFX
 
 A custom control that allows an application to display PDF files. The control utilizes Apache's PDFBox project.
