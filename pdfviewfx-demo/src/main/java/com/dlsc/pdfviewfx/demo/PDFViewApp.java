@@ -27,9 +27,10 @@ public class PDFViewApp extends Application {
 
     private FileChooser chooser;
 
+    protected final PDFView pdfView = new PDFView();
+
     @Override
     public void start(Stage primaryStage) {
-        PDFView pdfView = new PDFView();
 
         MenuItem loadItem = new MenuItem("Load PDF...");
         loadItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+o"));

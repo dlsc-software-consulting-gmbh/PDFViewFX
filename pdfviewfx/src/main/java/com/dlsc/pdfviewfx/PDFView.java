@@ -74,7 +74,7 @@ public class PDFView extends Control {
 
     @Override
     public String getUserAgentStylesheet() {
-        return PDFView.class.getResource("pdf-view.css").toExternalForm();
+        return Objects.requireNonNull(PDFView.class.getResource("pdf-view.css")).toExternalForm();
     }
 
     /**

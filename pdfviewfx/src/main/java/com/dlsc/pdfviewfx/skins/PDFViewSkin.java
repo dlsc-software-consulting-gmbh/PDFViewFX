@@ -118,6 +118,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         thumbnailListView.setItems(pdfFilePages);
         thumbnailListView.prefWidthProperty().bind(view.thumbnailSizeProperty().multiply(1.25));
         thumbnailListView.requestFocus();
+        thumbnailListView.setFixedCellSize(-1);
         thumbnailListView.getSelectionModel().selectedItemProperty().addListener(it -> {
             Integer selectedItem = thumbnailListView.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
@@ -300,6 +301,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         goLeft.setOnAction(evt -> view.gotoPreviousPage());
         goLeft.getStyleClass().addAll("tool-bar-button", "previous-page-button");
         goLeft.disableProperty().bind(Bindings.createBooleanBinding(() -> view.getPage() <= 0, view.pageProperty(), view.documentProperty()));
+        goLeft.setMaxHeight(Double.MAX_VALUE);
 
         Button goRight = new Button();
         goRight.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_RIGHT));
@@ -307,6 +309,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         goRight.setOnAction(evt -> view.gotoNextPage());
         goRight.getStyleClass().addAll("tool-bar-button", "next-page-button");
         goRight.disableProperty().bind(Bindings.createBooleanBinding(() -> view.getDocument() == null || view.getDocument().getNumberOfPages() <= view.getPage() + 1, view.pageProperty(), view.documentProperty()));
+        goRight.setMaxHeight(Double.MAX_VALUE);
 
         IntegerInputField pageField = new IntegerInputField();
         pageField.setTooltip(new Tooltip("Current page number"));
@@ -333,6 +336,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         totalPages.setAlignment(Pos.CENTER);
         totalPages.setOnAction(event -> view.gotoLastPage());
         totalPages.setFocusTraversable(false);
+        totalPages.setMaxHeight(Double.MAX_VALUE);
         updateTotalPagesNumber(totalPages);
         view.documentProperty().addListener(it -> updateTotalPagesNumber(totalPages));
 
