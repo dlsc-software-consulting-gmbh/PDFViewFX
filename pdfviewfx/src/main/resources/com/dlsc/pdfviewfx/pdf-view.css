@@ -45,6 +45,7 @@
     -fx-background: rgb(245, 245, 245);
     -fx-background-color: -fx-background;
     -fx-padding: 20 20 10 10;
+    -fx-cell-size: -1;
 }
 
 .pdf-view .thumbnail-list-view .list-cell:odd,
