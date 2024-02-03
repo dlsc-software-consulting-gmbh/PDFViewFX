@@ -36,7 +36,7 @@
 
     <repositories>
         <repository>
-            <id>jpro - sandec repository</id>
+            <id>sandec</id>
             <url>https://sandec.jfrog.io/artifactory/repo</url>
         </repository>
     </repositories>
@@ -99,9 +99,9 @@
             </plugin>
 
             <plugin>
-                <groupId>com.sandec.jpro</groupId>
+                <groupId>one.jpro</groupId>
                 <artifactId>jpro-maven-plugin</artifactId>
-                <version>2020.1.0</version>
+                <version>2023.3.3</version>
                 <configuration>
                     <visible>false</visible>
                     <mainClassName>
