@@ -9,29 +9,29 @@
     -fx-pref-width: 300;
 }
 
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell {
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell {
     -fx-padding: 10;
     -fx-text-fill: -color-default-bg;
     -fx-background-color: -color-thumbnail-bar;
     -fx-cell-size: -1;
 }
 
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell .page-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell .page-label {
     -fx-font-weight: bold;
 }
 
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell:selected .page-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell:selected .page-label {
     -fx-text-fill: -color-fg-emphasis;
 }
 
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell .matches-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell .matches-label {
     -fx-font-size: .9em;
     -fx-text-fill: -color-fg-default;
     -fx-opacity: .5
 }
 
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell:focused,
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell:selected {
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell:focused,
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell:selected {
     -fx-text-fill: -color-fg-emphasis;
     -fx-background-color: -color-neutral-emphasis-plus;
 }
@@ -47,18 +47,18 @@
     -fx-text-fill: -color-fg-emphasis;
 }
 
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell .image-view-wrapper {
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell .image-view-wrapper {
     -fx-padding: 2px;
     -fx-background-color: white;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, .1), 6, 0.2, 0, 0);;
 }
 
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell .summary-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell .summary-label {
     -fx-text-fill: -color-fg-default;
     -fx-font-size: .9em;
 }
 
-.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell:selected .summary-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view .list-cell:selected .summary-label {
     -fx-text-fill: -color-fg-emphasis;
 }
 
