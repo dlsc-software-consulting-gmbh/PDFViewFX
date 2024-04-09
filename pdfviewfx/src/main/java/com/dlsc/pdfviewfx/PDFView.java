@@ -63,8 +63,6 @@ public class PDFView extends Control {
 
             setSearchText(null);
         });
-
-        getStylesheets().add(getUserAgentStylesheet());
     }
 
     @Override
