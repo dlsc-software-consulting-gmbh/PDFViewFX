@@ -157,12 +157,12 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         HBox searchNavigator = createSearchNavigator();
 
-        MainAreaScrollPane mainArea = new MainAreaScrollPane();
-        VBox.setVgrow(mainArea, Priority.ALWAYS);
+        MainAreaScrollPane mainAreaScrollPane = new MainAreaScrollPane();
+        VBox.setVgrow(mainAreaScrollPane, Priority.ALWAYS);
 
-        VBox rightSide = new VBox(searchNavigator, mainArea);
-        rightSide.getStyleClass().add("main-area");
-        rightSide.setFillWidth(true);
+        VBox mainArea = new VBox(searchNavigator, mainAreaScrollPane);
+        mainArea.getStyleClass().add("main-area");
+        mainArea.setFillWidth(true);
 
         StackPane leftSide = new StackPane(thumbnailListView, searchResultListView);
         leftSide.getStyleClass().add("tray");
@@ -170,15 +170,16 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         leftSide.managedProperty().bind(view.showThumbnailsProperty());
 
         BorderPane borderPane = new BorderPane();
+        borderPane.getStyleClass().add("border-pane");
         borderPane.setTop(toolBar);
         borderPane.setLeft(leftSide);
-        borderPane.setCenter(rightSide);
+        borderPane.setCenter(mainArea);
         borderPane.setFocusTraversable(false);
 
         getChildren().add(borderPane);
 
         view.documentProperty().addListener(it -> {
-            mainArea.setImage(null);
+            mainAreaScrollPane.setImage(null);
             imageCache.clear();
             view.setPage(-1);
             view.setPage(0);
@@ -438,6 +439,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         BooleanBinding searchResultsAvailable = Bindings.isNotEmpty(view.getSearchResults());
 
         HBox buttonBox = new HBox(previousResultButton, nextResultButton);
+        buttonBox.getStyleClass().add("button-box");
 
         HBox searchBox = new HBox(searchLabel, buttonBox, doneButton);
         searchBox.getStyleClass().add("search-navigator");
@@ -712,7 +714,15 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             group = new Group(wrapper);
             pane.getChildren().addAll(group);
 
-            viewportBoundsProperty().addListener((observable, oldBounds, newBounds) -> {
+            /*
+             * THIS HAS TO BE AN INVALIDATION LISTENER AND NOT A CHANGE LISTENER, OTHERWISE
+             * ZOOMING WILL NOT WORK.
+             *
+             * I HAVE NO IDEA WHY ...
+             */
+            viewportBoundsProperty().addListener(it -> { // do not change to change listener
+                final Bounds bounds = getViewportBounds();
+
                 pane.setPrefWidth(Region.USE_COMPUTED_SIZE);
                 pane.setMinWidth(Region.USE_COMPUTED_SIZE);
 
@@ -721,18 +731,18 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
                 if (isPortrait()) {
 
-                    double prefWidth = newBounds.getWidth() * pdfView.getZoomFactor() - 5;
+                    final double prefWidth = bounds.getWidth() * pdfView.getZoomFactor() - 5;
                     pane.setPrefWidth(prefWidth);
                     pane.setMinWidth(prefWidth);
 
                     if (pdfView.isShowAll()) {
-                        pane.setPrefHeight(newBounds.getHeight() - 5);
+                        pane.setPrefHeight(bounds.getHeight() - 5);
                     } else {
                         Image image = getImage();
                         if (image != null) {
-                            double scale = newBounds.getWidth() / image.getWidth();
+                            double scale = bounds.getWidth() / image.getWidth();
                             double scaledImageHeight = image.getHeight() * scale;
-                            double prefHeight = scaledImageHeight * pdfView.getZoomFactor();
+                            final double prefHeight = scaledImageHeight * pdfView.getZoomFactor();
                             pane.setPrefHeight(prefHeight);
                             pane.setMinHeight(prefHeight);
                         }
@@ -744,18 +754,18 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                      * Image has been rotated.
                      */
 
-                    double prefHeight = newBounds.getHeight() * pdfView.getZoomFactor() - 5;
+                    final double prefHeight = bounds.getHeight() * pdfView.getZoomFactor() - 5;
                     pane.setPrefHeight(prefHeight);
                     pane.setMinHeight(prefHeight);
 
                     if (pdfView.isShowAll()) {
-                        pane.setPrefWidth(newBounds.getWidth() - 5);
+                        pane.setPrefWidth(bounds.getWidth() - 5);
                     } else {
                         Image image = getImage();
                         if (image != null) {
-                            double scale = newBounds.getHeight() / image.getWidth();
+                            double scale = bounds.getHeight() / image.getWidth();
                             double scaledImageHeight = image.getHeight() * scale;
-                            double prefWidth = scaledImageHeight * pdfView.getZoomFactor();
+                            final double prefWidth = scaledImageHeight * pdfView.getZoomFactor();
                             pane.setPrefWidth(prefWidth);
                             pane.setMinWidth(prefWidth);
                         }
