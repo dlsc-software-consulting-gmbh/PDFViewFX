@@ -1,3 +1,4 @@
 .idea
 target/
 *.iml
+/pdfviewfx-demo/scenicView.properties
