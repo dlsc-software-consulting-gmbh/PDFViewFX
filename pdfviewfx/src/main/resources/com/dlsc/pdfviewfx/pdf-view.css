@@ -4,99 +4,99 @@
 /* ------------------------------------------------------------------
  * Search Result List View
  */
-.pdf-view .search-result-list-view {
+.pdf-view > .border-pane > .tray > .search-result-list-view {
     -fx-pref-width: 300;
 }
 
-.pdf-view .search-result-list-view .list-cell {
+.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell {
     -fx-padding: 10;
     -fx-text-fill: -fx-text-background-color;
 }
 
-.pdf-view .search-result-list-view .list-cell .page-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell .page-label {
     -fx-font-weight: bold;
 }
 
-.pdf-view .search-result-list-view .list-cell .matches-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell .matches-label {
     -fx-font-size: .9em;
     -fx-text-fill: -fx-text-background-color;
     -fx-opacity: .5
 }
 
-.pdf-view .search-result-list-view:focused .list-cell:focused .matches-label,
-.pdf-view .search-result-list-view:focused .list-cell:selected .matches-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view:focused .list-cell:focused .matches-label,
+.pdf-view > .border-pane > .tray > .search-result-list-view:focused .list-cell:selected .matches-label {
 }
 
-.pdf-view .search-result-list-view .list-cell .image-view-wrapper {
+.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell .image-view-wrapper {
     -fx-padding: 2px;
     -fx-background-color: white;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, .1), 6, 0.2, 0, 0);;
 }
 
-.pdf-view .search-result-list-view .list-cell .summary-label {
+.pdf-view > .border-pane > .tray > .search-result-list-view.list-cell .summary-label {
     -fx-font-size: .9em;
 }
 
 /* ------------------------------------------------------------------
  * Thumbnail List View
  */
-.pdf-view .thumbnail-list-view {
+.pdf-view > .border-pane > .tray > .thumbnail-list-view {
     -fx-pref-width: 200;
 }
 
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell,
-.pdf-view .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell {
+.pdf-view > .border-pane > .tray > .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell,
+.pdf-view > .border-pane > .tray > .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell {
     -fx-background: rgb(245, 245, 245);
     -fx-background-color: -fx-background;
     -fx-padding: 20 20 10 10;
     -fx-cell-size: -1;
 }
 
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:odd,
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:odd {
+.pdf-view > .border-pane > .tray > .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:odd,
+.pdf-view > .border-pane > .tray > .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:odd {
     -fx-background: rgb(245, 245, 245);
     -fx-background-color: -fx-background;
 }
 
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected,
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected:focused,
-.pdf-view .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+.pdf-view > .border-pane > .tray > .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected,
+.pdf-view > .border-pane > .tray > .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected:focused,
+.pdf-view > .border-pane > .tray > .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
     -fx-background: rgb(245, 245, 245);
     -fx-table-cell-border-color: derive(-fx-selection-bar, 20%);
     -fx-background-insets: 0px;
 }
 
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell .page-number-label,
-.pdf-view .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell .page-number-label,
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .page-number-label,
-.pdf-view .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .page-number-label {
+.pdf-view > .border-pane > .tray > .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell .page-number-label,
+.pdf-view > .border-pane > .tray > .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell .page-number-label,
+.pdf-view > .border-pane > .tray > .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .page-number-label,
+.pdf-view > .border-pane > .tray > .thumbnail-list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .page-number-label {
     -fx-text-fill: -fx-text-background-color;
     -fx-font-size: 10px;
 }
 
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell .image-view-wrapper {
+.pdf-view > .border-pane > .tray > .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell .image-view-wrapper {
     -fx-padding: 2px;
     -fx-background-color: white;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, .1), 6, 0.2, 0, 0);;
 }
 
-.pdf-view .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .image-view-wrapper {
+.pdf-view > .border-pane > .tray > .thumbnail-list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .image-view-wrapper {
     -fx-background-color: -fx-selection-bar, white;
     -fx-background-insets: 0, 2;
     -fx-background-radius: 2px;
 }
 
-.pdf-view > .border-pane > .tool-bar > .search-field .ikonli-font-icon {
+.pdf-view > .border-pane > .tool-bar > .container > .search-field .ikonli-font-icon {
     -fx-opacity: .66;
     -fx-icon-color: -fx-text-background-color;
     -fx-icon-size: 16px;
 }
 
-.pdf-view > .border-pane > .tool-bar > .search-field .ikonli-font-icon:hover {
+.pdf-view > .border-pane > .tool-bar > .container > .search-field .ikonli-font-icon:hover {
     -fx-opacity: 1;
 }
 
-.pdf-view > .border-pane > .tool-bar > .search-field .ikonli-font-icon:pressed {
+.pdf-view > .border-pane > .tool-bar > .container > .search-field .ikonli-font-icon:pressed {
     -fx-opacity: 1;
 }
 
