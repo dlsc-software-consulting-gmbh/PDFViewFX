@@ -1,11 +1,11 @@
 .pdf-view {
-    -color-thumbnail-bar: -color-accent-muted;
+    -color-thumbnail-bar: -color-neutral-subtle;
 }
 
 /* ------------------------------------------------------------------
  * Search Result List View
  */
-.pdf-view > .border-pane > .tray > .search-result-list-view{
+.pdf-view > .border-pane > .tray > .search-result-list-view {
     -fx-pref-width: 300;
 }
 
@@ -129,7 +129,7 @@
 }
 
 .pdf-view > .border-pane > .main-area > .search-navigator {
-    -fx-background-color: -color-accent-subtle;
+    -fx-background-color: -color-neutral-subtle;
     -fx-padding: 5px 10px;
     -fx-fill-height: true;
     -fx-spacing: 10px;
@@ -137,7 +137,7 @@
 }
 
 .pdf-view > .border-pane > .main-area > .search-navigator > .search-result-label {
-    -fx-text-fill: -color-accent-fg;
+    -fx-text-fill: -color-fg-default;
 }
 
 .pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button {
@@ -201,4 +201,12 @@
 }
 
 .pdf-view > .border-pane > .main-area > .scroll-pane .bouncer {
+}
+
+.pdf-view > .border-pane > .main-area > .scroll-pane {
+    -fx-border-color: -color-border-default;
+}
+
+.pdf-view > .border-pane > .main-area > .scroll-pane > .viewport {
+    -fx-background-color: -color-neutral-subtle;
 }
