@@ -45,7 +45,7 @@
     </scm>
 
     <properties>
-        <javafx.version>19</javafx.version>
+        <javafx.version>19.0.2.1</javafx.version>
         <ikonli.version>12.3.1</ikonli.version>
         <jaxb.version>2.3.3</jaxb.version>
         <project.identifier>gemsfx</project.identifier>
@@ -83,7 +83,7 @@
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox</artifactId>
-                <version>3.0.1</version>
+                <version>3.0.5</version>
             </dependency>
 
             <dependency>
