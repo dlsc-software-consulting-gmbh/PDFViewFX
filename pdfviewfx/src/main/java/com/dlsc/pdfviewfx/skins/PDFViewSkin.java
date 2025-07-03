@@ -987,6 +987,11 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             this.page = page;
             this.scale = scale;
         }
+        
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+        	return super.cancel(false); // #21: Must not interrupt pdfbox otherwise the PDDocument will no longer be able to render pages
+        }
 
         @Override
         protected Image call() {
