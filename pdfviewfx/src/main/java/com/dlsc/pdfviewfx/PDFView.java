@@ -447,11 +447,7 @@ public class PDFView extends Control {
     public final void load(File file) {
         Objects.requireNonNull(file, "file can not be null");
         load(() -> {
-            try {
-                return new PDFBoxDocument(file);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        	return new PDFBoxDocument(file);
         });
     }
 
