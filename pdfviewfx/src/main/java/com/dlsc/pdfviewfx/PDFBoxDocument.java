@@ -33,26 +33,39 @@ import java.util.List;
 public class PDFBoxDocument implements SearchableDocument {
 
     private final PDDocument document;
+    
+    private byte[] contentBytes;
+    private File contentFile;
 
     public PDFBoxDocument(InputStream pdfInputStream) {
         try {
-            document = Loader.loadPDF(pdfInputStream.readAllBytes());
+        	contentBytes = pdfInputStream.readAllBytes();
+            document = createDocument();
         } catch (IOException e) {
             throw new DocumentProcessingException(e);
         }
     }
 
-    public PDFBoxDocument(File file) throws IOException {
-        document = Loader.loadPDF(new RandomAccessReadBufferedFile(file));
+    public PDFBoxDocument(File file) {
+    	contentFile = file;
+        document = createDocument();
+    }
+    
+    private PDDocument createDocument() {
+    	try {
+    		return contentFile == null ? Loader.loadPDF(contentBytes) : Loader.loadPDF(new RandomAccessReadBufferedFile(contentFile));
+    	} catch (IOException e) {
+    		throw new DocumentProcessingException(e);
+    	}
     }
 
     @Override
-    public int getNumberOfPages() {
+    public synchronized int getNumberOfPages() {
         return document.getNumberOfPages();
     }
 
     @Override
-    public boolean isLandscape(int pageNumber) {
+    public synchronized boolean isLandscape(int pageNumber) {
         PDPage page = document.getPage(pageNumber);
         PDRectangle cropBox = page.getCropBox();
         return cropBox.getHeight() < cropBox.getWidth();
@@ -60,11 +73,11 @@ public class PDFBoxDocument implements SearchableDocument {
 
     @Override
     public Pageable getPageable() {
-        return new PDFPageable(document);
+        return new PDFPageable(createDocument());
     }
 
     @Override
-    public BufferedImage renderPage(int pageNumber, float scale) {
+    public synchronized BufferedImage renderPage(int pageNumber, float scale) {
         PDFRenderer renderer = new PDFRenderer(document);
         BufferedImage bufferedImage;
 
@@ -122,7 +135,7 @@ public class PDFBoxDocument implements SearchableDocument {
         };
 
         try {
-            stripper.writeText(document, writer);
+            stripper.writeText(createDocument(), writer);
         } catch (IOException e) {
             throw new DocumentProcessingException(e);
         }
@@ -131,7 +144,7 @@ public class PDFBoxDocument implements SearchableDocument {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         try {
             document.close();
         } catch (IOException e) {
