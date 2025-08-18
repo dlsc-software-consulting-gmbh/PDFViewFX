@@ -11,7 +11,7 @@
 
 .pdf-view > .border-pane > .tray > .search-result-list-view .list-cell {
     -fx-padding: 10;
-    -fx-text-fill: -color-default-bg;
+    -fx-text-fill: -color-bg-default;
     -fx-background-color: -color-thumbnail-bar;
     -fx-cell-size: -1;
 }
@@ -141,6 +141,10 @@
 }
 
 .pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button {
+    -fx-background-radius: 1px, 0px;
+    -fx-background-color: -color-border-default, -color-button-bg;
+    -fx-background-insets: 0px, 1px;
+    -fx-text-fill: -color-fg-default;
 }
 
 .pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button:hover {
@@ -149,19 +153,19 @@
 .pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button:pressed {
 }
 
-.pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button:disabled {
-    -fx-opacity: 1;
+.pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button .ikonli-font-icon {
 }
+
 
 .pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button .ikonli-font-icon {
 }
 
 .pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button.previous-search-result {
-    -fx-background-radius: 3 0 0 3, 3 0 0 3;
+    -fx-background-radius: 1 0 0 1, 0;
 }
 
 .pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button.next-search-result {
-    -fx-background-radius: 0 3 3 0, 0 3 3 0;
+    -fx-background-radius: 0 1 1 0, 0;
     -fx-background-insets: 0, 1 1 1 0;
 }
 

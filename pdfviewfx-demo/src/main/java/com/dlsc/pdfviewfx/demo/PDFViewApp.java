@@ -8,6 +8,8 @@ import javafx.collections.ObservableList;
 
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -15,6 +17,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -22,8 +25,15 @@ import javafx.stage.Stage;
 
 import javax.swing.SwingUtilities;
 import java.io.File;
+import java.util.Objects;
 
 public class PDFViewApp extends Application {
+
+    static {
+        if (Boolean.getBoolean("atlantafx")) {
+            setUserAgentStylesheet(Objects.requireNonNull(PDFViewApp.class.getResource("/nord-dark.css")).toExternalForm());
+        }
+    }
 
     private FileChooser chooser;
 
@@ -31,7 +41,6 @@ public class PDFViewApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-
         MenuItem loadItem = new MenuItem("Load PDF...");
         loadItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+o"));
         loadItem.setOnAction(evt -> {
@@ -93,6 +102,10 @@ public class PDFViewApp extends Application {
         VBox.setVgrow(pdfView, Priority.ALWAYS);
         VBox box = new VBox(menuBar, pdfView);
         box.setFillWidth(true);
+
+        if (Boolean.getBoolean("atlantafx")) {
+            pdfView.getStylesheets().setAll(Objects.requireNonNull(PDFViewApp.class.getResource("/pdf-view-atlanta.css")).toExternalForm());
+        }
 
         Scene scene = new Scene(box);
 

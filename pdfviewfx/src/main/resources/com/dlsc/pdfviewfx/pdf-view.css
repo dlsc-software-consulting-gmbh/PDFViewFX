@@ -115,7 +115,8 @@
 .pdf-view > .border-pane > .main-area > .search-navigator > .button-box > .search-bar-button {
     -fx-padding: 2 5;
     -fx-background-radius: 2, 2;
-    -fx-background-color: gray, -fx-base;
+    -fx-background: -fx-base;
+    -fx-background-color: gray, -fx-background;
     -fx-background-insets: 0, 1 1 1 1;
     -fx-text-fill: -fx-text-background-color;
 }
