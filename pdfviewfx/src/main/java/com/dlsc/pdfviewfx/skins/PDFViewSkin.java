@@ -295,6 +295,13 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         showAll.setTooltip(new Tooltip("Show all / whole page"));
         showAll.selectedProperty().bindBidirectional(pdfView.showAllProperty());
 
+        // show thubnails
+        ToggleButton showThumbnails = new ToggleButton();
+        showThumbnails.setGraphic(new FontIcon(MaterialDesign.MDI_VIEW_LIST));
+        showThumbnails.getStyleClass().addAll("tool-bar-button", "show-thumbnails-button");
+        showThumbnails.setTooltip(new Tooltip("Show thumbnails"));
+        showThumbnails.selectedProperty().bindBidirectional(pdfView.showThumbnailsProperty());
+
         // paging
         Button goLeft = new Button();
         goLeft.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_LEFT));
@@ -396,6 +403,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         // toolbar
         return new ToolBar(
                 showAll,
+                showThumbnails,
                 new Separator(Orientation.VERTICAL),
                 zoomLabel,
                 zoomSlider,
