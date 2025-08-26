@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 
+import java.awt.GraphicsEnvironment;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 
@@ -42,6 +43,7 @@ public class PDFViewApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        GraphicsEnvironment.getLocalGraphicsEnvironment();
         MenuItem loadItem = new MenuItem("Load PDF...");
         loadItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+o"));
         loadItem.setOnAction(evt -> {
