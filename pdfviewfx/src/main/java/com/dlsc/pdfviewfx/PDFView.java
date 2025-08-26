@@ -446,9 +446,7 @@ public class PDFView extends Control {
      */
     public final void load(File file) {
         Objects.requireNonNull(file, "file can not be null");
-        load(() -> {
-        	return new PDFBoxDocument(file);
-        });
+        load(() -> new PDFBoxDocument(file));
     }
 
     /**

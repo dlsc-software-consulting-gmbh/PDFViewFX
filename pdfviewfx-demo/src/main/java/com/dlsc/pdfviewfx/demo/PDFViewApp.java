@@ -22,6 +22,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
+import org.scenicview.ScenicView;
 
 import javax.swing.SwingUtilities;
 import java.io.File;
@@ -117,5 +118,7 @@ public class PDFViewApp extends Application {
         primaryStage.setScene(scene);
         primaryStage.centerOnScreen();
         primaryStage.show();
+
+//        ScenicView.show(pdfView);
     }
 }
