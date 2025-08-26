@@ -10,6 +10,7 @@ import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.paint.Color;
 
+import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.awt.print.Pageable;
 import java.io.File;
@@ -31,6 +32,9 @@ public class PDFView extends Control {
      */
     public PDFView() {
         super();
+
+        // to avoid threading deadlock, see issue #25 and pull request #26
+        GraphicsEnvironment.getLocalGraphicsEnvironment();
 
         getStyleClass().add("pdf-view");
         setFocusTraversable(false);

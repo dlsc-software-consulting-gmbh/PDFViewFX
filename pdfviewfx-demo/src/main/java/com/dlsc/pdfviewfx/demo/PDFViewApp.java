@@ -43,7 +43,6 @@ public class PDFViewApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        GraphicsEnvironment.getLocalGraphicsEnvironment();
         MenuItem loadItem = new MenuItem("Load PDF...");
         loadItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+o"));
         loadItem.setOnAction(evt -> {
