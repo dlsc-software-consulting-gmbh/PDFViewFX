@@ -108,6 +108,10 @@
     -fx-background-radius: 4px, 3px;
 }
 
+.pdf-view > .border-pane > .tool-bar {
+    -fx-background-color: -color-bg-subtle;
+}
+
 .pdf-view > .border-pane > .tool-bar > .container > .search-field {
     -fx-text-fill: -color-fg-default;
     -fx-background-color: -color-bg-default;
@@ -207,8 +211,12 @@
 .pdf-view > .border-pane > .main-area > .scroll-pane .bouncer {
 }
 
+.pdf-view .list-view {
+    -fx-border-color: -color-border-muted;
+}
+
 .pdf-view > .border-pane > .main-area > .scroll-pane {
-    -fx-border-color: -color-border-default;
+    -fx-border-color: -color-border-muted;
 }
 
 .pdf-view > .border-pane > .main-area > .scroll-pane > .viewport {
