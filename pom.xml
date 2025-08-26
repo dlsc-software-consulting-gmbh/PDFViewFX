@@ -45,13 +45,13 @@
     </scm>
 
     <properties>
-        <javafx.version>24.0.2</javafx.version>
+        <javafx.version>23.0.2</javafx.version>
         <ikonli.version>12.4.0</ikonli.version>
         <jaxb.version>2.3.3</jaxb.version>
         <project.identifier>gemsfx</project.identifier>
         <project.github.repository>dlsc-software-consulting-gmbh/GemsFX</project.github.repository>
         <local.repository.path>/tmp/repository</local.repository.path>
-        <java.version>24</java.version>
+        <java.version>21</java.version>
         <sonar.projectKey>dlsc-software-consulting-gmbh_PDFViewFX</sonar.projectKey>
         <sonar.organization>dlsc-software-consulting-gmbh</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -158,18 +158,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                    <release>11</release>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
                 <configuration>
                     <failOnError>false</failOnError>
                     <force>true</force>
