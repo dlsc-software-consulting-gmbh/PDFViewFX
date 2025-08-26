@@ -33,13 +33,13 @@ import java.util.List;
 public class PDFBoxDocument implements SearchableDocument {
 
     private final PDDocument document;
-    
+
     private byte[] contentBytes;
     private File contentFile;
 
     public PDFBoxDocument(InputStream pdfInputStream) {
         try {
-        	contentBytes = pdfInputStream.readAllBytes();
+            contentBytes = pdfInputStream.readAllBytes();
             document = createDocument();
         } catch (IOException e) {
             throw new DocumentProcessingException(e);
@@ -47,16 +47,16 @@ public class PDFBoxDocument implements SearchableDocument {
     }
 
     public PDFBoxDocument(File file) {
-    	contentFile = file;
+        contentFile = file;
         document = createDocument();
     }
-    
+
     private PDDocument createDocument() {
-    	try {
-    		return contentFile == null ? Loader.loadPDF(contentBytes) : Loader.loadPDF(new RandomAccessReadBufferedFile(contentFile));
-    	} catch (IOException e) {
-    		throw new DocumentProcessingException(e);
-    	}
+        try {
+            return contentFile == null ? Loader.loadPDF(contentBytes) : Loader.loadPDF(new RandomAccessReadBufferedFile(contentFile));
+        } catch (IOException e) {
+            throw new DocumentProcessingException(e);
+        }
     }
 
     @Override
