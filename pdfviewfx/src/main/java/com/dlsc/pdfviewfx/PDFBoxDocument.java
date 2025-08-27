@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -36,11 +37,14 @@ public class PDFBoxDocument implements SearchableDocument {
 
     private byte[] contentBytes;
     private File contentFile;
+    private int numberOfPages;
+    private BitSet landscapeCache;
 
     public PDFBoxDocument(InputStream pdfInputStream) {
         try {
             contentBytes = pdfInputStream.readAllBytes();
             document = createDocument();
+            initCaches();
         } catch (IOException e) {
             throw new DocumentProcessingException(e);
         }
@@ -49,6 +53,22 @@ public class PDFBoxDocument implements SearchableDocument {
     public PDFBoxDocument(File file) {
         contentFile = file;
         document = createDocument();
+        initCaches();
+    }
+
+    private void initCaches() {
+        long start = System.currentTimeMillis();
+        numberOfPages = document.getNumberOfPages();
+        landscapeCache = new BitSet(numberOfPages);
+        for (int i = 0; i < numberOfPages; i++) {
+            PDPage page = document.getPage(i);
+            PDRectangle cropBox = page.getCropBox();
+            boolean landscape = cropBox.getHeight() < cropBox.getWidth();            
+            landscapeCache.set(i, landscape);
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("Filling caches took " + (end-start) + " ms.");
+        
     }
 
     private PDDocument createDocument() {
@@ -60,15 +80,13 @@ public class PDFBoxDocument implements SearchableDocument {
     }
 
     @Override
-    public synchronized int getNumberOfPages() {
-        return document.getNumberOfPages();
+    public int getNumberOfPages() {
+        return numberOfPages;
     }
 
     @Override
-    public synchronized boolean isLandscape(int pageNumber) {
-        PDPage page = document.getPage(pageNumber);
-        PDRectangle cropBox = page.getCropBox();
-        return cropBox.getHeight() < cropBox.getWidth();
+    public boolean isLandscape(int pageNumber) {
+        return landscapeCache.get(pageNumber);
     }
 
     @Override
@@ -77,7 +95,7 @@ public class PDFBoxDocument implements SearchableDocument {
     }
 
     @Override
-    public synchronized BufferedImage renderPage(int pageNumber, float scale) {
+    public BufferedImage renderPage(int pageNumber, float scale) {
         PDFRenderer renderer = new PDFRenderer(document);
         BufferedImage bufferedImage;
 
@@ -134,8 +152,8 @@ public class PDFBoxDocument implements SearchableDocument {
             }
         };
 
-        try {
-            stripper.writeText(createDocument(), writer);
+        try (PDDocument doc = createDocument()) {
+            stripper.writeText(doc, writer);
         } catch (IOException e) {
             throw new DocumentProcessingException(e);
         }
@@ -144,7 +162,7 @@ public class PDFBoxDocument implements SearchableDocument {
     }
 
     @Override
-    public synchronized void close() {
+    public void close() {
         try {
             document.close();
         } catch (IOException e) {
