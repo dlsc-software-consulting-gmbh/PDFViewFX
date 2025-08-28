@@ -57,7 +57,6 @@ public class PDFBoxDocument implements SearchableDocument {
     }
 
     private void initCaches() {
-        long start = System.currentTimeMillis();
         numberOfPages = document.getNumberOfPages();
         landscapeCache = new BitSet(numberOfPages);
         for (int i = 0; i < numberOfPages; i++) {
@@ -66,9 +65,6 @@ public class PDFBoxDocument implements SearchableDocument {
             boolean landscape = cropBox.getHeight() < cropBox.getWidth();            
             landscapeCache.set(i, landscape);
         }
-        long end = System.currentTimeMillis();
-        System.out.println("Filling caches took " + (end-start) + " ms.");
-        
     }
 
     private PDDocument createDocument() {
