@@ -6,11 +6,9 @@ import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 
-import java.awt.GraphicsEnvironment;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -18,12 +16,10 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
-import org.scenicview.ScenicView;
 
 import javax.swing.SwingUtilities;
 import java.io.File;
