@@ -630,17 +630,17 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                     return;
                 }
 
-                boolean success;
+                boolean success = false;
 
                 if (evt.getDeltaY() > 0) {
                     success = pdfView.getPage() > 0;
                     pagerService.setUp(true);
-                } else {
+                } else if (evt.getDeltaY() < 0){
                     success = pdfView.getPage() < pdfView.getDocument().getNumberOfPages() - 1;
                     pagerService.setUp(false);
                 }
 
-                if (success) {
+                if (success && !pagerService.isRunning()) {
                     pagerService.restart();
                     evt.consume();
                 }
