@@ -4,7 +4,6 @@ import com.dlsc.pdfviewfx.PDFView;
 import com.dlsc.pdfviewfx.PDFView.Document;
 import com.dlsc.pdfviewfx.PDFView.SearchResult;
 import com.dlsc.pdfviewfx.PDFView.SearchableDocument;
-import com.dlsc.unitfx.IntegerInputField;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
@@ -319,21 +318,14 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         goRight.disableProperty().bind(Bindings.createBooleanBinding(() -> view.getDocument() == null || view.getDocument().getNumberOfPages() <= view.getPage() + 1, view.pageProperty(), view.documentProperty()));
         goRight.setMaxHeight(Double.MAX_VALUE);
 
-        IntegerInputField pageField = new IntegerInputField();
+        PageNumberTextField pageField = new PageNumberTextField();
         pageField.setTooltip(new Tooltip("Current page number"));
         pageField.getStyleClass().add("page-field");
-        pageField.setAllowNegatives(false);
         pageField.setMaxHeight(Double.MAX_VALUE);
         pageField.setAlignment(Pos.CENTER);
-        pageField.setMinimumValue(0);
         updateCurrentPageNumber(view, pageField);
         view.pageProperty().addListener(it -> updateCurrentPageNumber(view, pageField));
-        pageField.valueProperty().addListener(it -> {
-            Integer value = pageField.getValue();
-            if (value != null) {
-                view.setPage(value - 1);
-            }
-        });
+        pageField.valueProperty().addListener(it -> view.setPage(pageField.getValue() - 1));
         updateMaximumValue(pageField);
         view.documentProperty().addListener(it -> updateMaximumValue(pageField));
 
@@ -477,20 +469,18 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         }
     }
 
-    private void updateMaximumValue(IntegerInputField pageField) {
+    private void updateMaximumValue(PageNumberTextField pageField) {
         Document document = getSkinnable().getDocument();
         if (document != null) {
-            pageField.setMaximumValue(document.getNumberOfPages());
+            pageField.setNumberOfPages(document.getNumberOfPages());
         }
     }
 
-    private void updateCurrentPageNumber(PDFView view, IntegerInputField pageField) {
+    private void updateCurrentPageNumber(PDFView view, PageNumberTextField pageField) {
         if (view.getDocument() != null) {
-            pageField.setMinimumValue(1);
             pageField.setValue(view.getPage() + 1);
         } else {
-            pageField.setMinimumValue(0);
-            pageField.setValue(0);
+            pageField.setValue(1);
         }
     }
 
@@ -635,7 +625,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                 if (evt.getDeltaY() > 0) {
                     success = pdfView.getPage() > 0;
                     pagerService.setUp(true);
-                } else if (evt.getDeltaY() < 0){
+                } else if (evt.getDeltaY() < 0) {
                     success = pdfView.getPage() < pdfView.getDocument().getNumberOfPages() - 1;
                     pagerService.setUp(false);
                 }
@@ -995,11 +985,11 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             this.page = page;
             this.scale = scale;
         }
-        
+
         @Override
         public boolean cancel(boolean mayInterruptIfRunning) {
             return super.cancel(false); // #21: Must not interrupt pdfbox otherwise the PDDocument will no longer be able to render pages
-        }        
+        }
 
         @Override
         protected Image call() {

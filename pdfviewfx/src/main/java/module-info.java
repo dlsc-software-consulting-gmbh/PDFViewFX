@@ -8,8 +8,6 @@ module com.dlsc.pdfviewfx {
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.materialdesign;
 
-    requires com.dlsc.unitfx;
-
     requires java.logging;
 
     requires org.apache.pdfbox;
