@@ -22,6 +22,6 @@ are attaching to your application's scene. For more information on **_AtlantaFX_
 
 ## Running the demo
 
-You can run the demos using Maven by typing the following line into your terminal:
+You can run the demos by using the project's Maven wrapper by typing the following line into your terminal:
 
-    mvn javafx:run -f pdfviewfx-demo/pom.xml
+    ./mvnw javafx:run -f pdfviewfx-demo/pom.xml
