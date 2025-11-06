@@ -63,7 +63,7 @@ public class PDFViewApp extends Application {
         }
 
         MenuItem closeItem = new MenuItem("Close PDF");
-        closeItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+c"));
+        closeItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+w"));
         closeItem.setOnAction(evt -> pdfView.unload());
         closeItem.disableProperty().bind(Bindings.isNull(pdfView.documentProperty()));
 
