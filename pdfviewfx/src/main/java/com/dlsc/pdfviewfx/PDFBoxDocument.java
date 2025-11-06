@@ -2,6 +2,10 @@ package com.dlsc.pdfviewfx;
 
 import com.dlsc.pdfviewfx.PDFView.Document;
 import com.dlsc.pdfviewfx.PDFView.SearchableDocument;
+import com.dlsc.pdfviewfx.PDFView.SelectableDocument;
+
+import com.dlsc.pdfviewfx.impl.SelectionExtractor;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
@@ -31,7 +35,7 @@ import java.util.List;
  *
  * @see PDFView#setDocument(Document)
  */
-public class PDFBoxDocument implements SearchableDocument {
+public class PDFBoxDocument implements SearchableDocument, SelectableDocument {
 
     private final PDDocument document;
 
@@ -39,6 +43,7 @@ public class PDFBoxDocument implements SearchableDocument {
     private File contentFile;
     private int numberOfPages;
     private BitSet landscapeCache;
+    private SelectionExtractor textPositionExtractor = new SelectionExtractor(-1);
 
     public PDFBoxDocument(InputStream pdfInputStream) {
         try {
@@ -130,26 +135,8 @@ public class PDFBoxDocument implements SearchableDocument {
             }
         };
 
-        Writer writer = new Writer() {
-
-            @Override
-            public void write(char[] cbuf, int off, int len) {
-                // Do nothing
-            }
-
-            @Override
-            public void flush() {
-                // Do nothing
-            }
-
-            @Override
-            public void close() {
-                // Do nothing
-            }
-        };
-
         try (PDDocument doc = createDocument()) {
-            stripper.writeText(doc, writer);
+            stripper.writeText(doc, Writer.nullWriter());
         } catch (IOException e) {
             throw new DocumentProcessingException(e);
         }
@@ -212,5 +199,17 @@ public class PDFBoxDocument implements SearchableDocument {
         }
 
         return snippetTextStartIndex - startIndexDecreaseDelta;
+    }
+
+    // This method is synchronized to avoid multiple selection service calls at the same time
+    @Override
+    public synchronized Selection getSelection(int pageNumber, Point2D start, Point2D end, Selection.Mode mode) {
+        if (textPositionExtractor.getPageNumber() != pageNumber) {
+            textPositionExtractor = new SelectionExtractor(pageNumber);
+            try (PDDocument doc = createDocument()) { // TODO :: recreating document is expensive 
+                textPositionExtractor.writeText(doc, Writer.nullWriter());
+            } catch (IOException e) { }
+        }
+        return textPositionExtractor.getSelection(pageNumber, start, end, mode);
     }
 }

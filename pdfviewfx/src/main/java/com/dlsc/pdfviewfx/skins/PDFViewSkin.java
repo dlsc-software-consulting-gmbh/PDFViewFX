@@ -4,6 +4,8 @@ import com.dlsc.pdfviewfx.PDFView;
 import com.dlsc.pdfviewfx.PDFView.Document;
 import com.dlsc.pdfviewfx.PDFView.SearchResult;
 import com.dlsc.pdfviewfx.PDFView.SearchableDocument;
+import com.dlsc.pdfviewfx.Selection;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
@@ -20,8 +22,11 @@ import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
+import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -31,9 +36,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -71,6 +74,8 @@ public class PDFViewSkin extends SkinBase<PDFView> {
     private final ListView<PageSearchResult> searchResultListView = new ListView<>();
 
     private final Map<Integer, Image> imageCache = new HashMap<>();
+    
+    private SelectionService selectionService = new SelectionService();
 
     private Properties languageProperties = new Properties();
 
@@ -290,6 +295,56 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             return document.getSearchResults(searchText);
         }
     }
+    
+    class SelectionService extends Service<Selection> {
+        private Point2D start, end;
+        private Selection.Mode mode;
+        
+        public void setStart(Point2D start) {
+            this.start = start;
+            this.end = null;
+        }
+        
+        public void setEnd(Point2D end) {
+            this.end = end;
+        }
+
+        public void setMode(Selection.Mode mode) {
+            this.mode = mode;
+        }
+
+        @Override
+        protected Task<Selection> createTask() {
+            return new SelectionTask(getSkinnable().getDocument(), getSkinnable().getPage(), start, end, mode);
+        }
+    }
+    
+    static class SelectionTask extends Task<Selection> {
+
+        private final Document document;
+        private final int pageNumber;
+        private final Point2D start, end;
+        private final Selection.Mode mode;
+
+
+        public SelectionTask(Document document, int pageNumber, Point2D start, Point2D end, Selection.Mode mode) {
+            this.document = document;
+            this.pageNumber = pageNumber;
+            this.start = start;
+            this.end = end;
+            this.mode = mode;
+        }
+
+        @Override
+        protected Selection call() throws Exception {
+            if (document instanceof PDFView.SelectableDocument selectableDocument && start != null && end != null) {
+                return selectableDocument.getSelection(pageNumber, start, end, mode);
+            } else {
+                return new Selection(-1,  List.of(), "");
+            }
+        }
+    }
+    
 
     private final DoubleProperty requestedVValue = new SimpleDoubleProperty(-1);
 
@@ -592,6 +647,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
             pdfView.selectedSearchResultProperty().addListener(it -> bounceSearchResult());
             pdfView.getSearchResults().addListener((Observable it) -> mainAreaRenderService.restart());
+            pdfView.selectionProperty().addListener((Observable it) -> mainAreaRenderService.restartLater());
 
             mainAreaRenderService.setOnSucceeded(evt -> {
                 double vValue = requestedVValue.get();
@@ -658,6 +714,21 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                         }
                     };
 
+            selectionService.setOnCancelled(evt -> {
+                if (selectionService.getValue() != null) { // use intermediate values for smooth selection
+                    getSkinnable().setSelection(selectionService.getValue());
+                }
+            });
+            selectionService.setOnSucceeded(evt -> {
+                getSkinnable().setSelection(selectionService.getValue());
+            });
+            selectionService.setOnFailed(evt -> {
+                if (selectionService.getException() instanceof Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+                    
             wrapper = new StackPane() {
                 @Override
                 protected void layoutChildren() {
@@ -675,9 +746,9 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                             bouncer.setWidth(marker.getWidth() * scale);
                             bouncer.setHeight(marker.getHeight() * scale);
                         }
+                        Platform.runLater(() -> ensureVisible(bouncer));
                     }
 
-                    Platform.runLater(() -> ensureVisible(bouncer));
                 }
 
                 private void ensureVisible(Node node) {
@@ -720,6 +791,34 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
             group = new Group(wrapper);
             pane.getChildren().addAll(group);
+            
+            group.addEventHandler(MouseEvent.MOUSE_PRESSED, evt -> {
+                if (evt.getButton() == MouseButton.PRIMARY) {
+                    group.setCursor(Cursor.TEXT);
+                    selectionService.setStart(getMouseEventPoint(evt));
+                    selectionService.setEnd(getMouseEventPoint(evt));
+                    selectionService.setMode(Selection.Mode.forClickCount(evt.getClickCount()));
+                    selectionService.restart();
+                    evt.consume();
+                }
+            });
+            
+            group.addEventHandler(MouseEvent.MOUSE_RELEASED, evt -> {
+                if (evt.getButton() == MouseButton.PRIMARY) {
+                    group.setCursor(Cursor.DEFAULT);
+                    selectionService.setEnd(getMouseEventPoint(evt));
+                    selectionService.restart();
+                    evt.consume();
+                }
+            });
+            
+            group.addEventHandler(MouseEvent.MOUSE_DRAGGED, evt -> {
+                if (evt.getButton() == MouseButton.PRIMARY) {
+                    selectionService.setEnd(getMouseEventPoint(evt));
+                    selectionService.restart();
+                    evt.consume();
+                }
+            });
 
             /*
              * THIS HAS TO BE AN INVALIDATION LISTENER AND NOT A CHANGE LISTENER, OTHERWISE
@@ -813,6 +912,17 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             updateScrollbarPolicies();
 
             layoutImage();
+        }
+        
+        private Point2D getMouseEventPoint(MouseEvent evt) {
+            double ImageToWrapperRatio = imageView.getImage().getWidth() / wrapper.getWidth();
+            Point3D point = evt.getPickResult().getIntersectedPoint();
+            
+            Point2D pointInImageCoordinates = new Point2D(
+                point.getX() * ImageToWrapperRatio / mainAreaRenderService.getScale(), 
+                point.getY() * ImageToWrapperRatio / mainAreaRenderService.getScale()
+            );
+            return pointInImageCoordinates;
         }
 
         private ParallelTransition parallel;
@@ -941,6 +1051,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
     private class RenderService extends Service<Image> {
 
         private final boolean thumbnailRenderer;
+        private volatile boolean restartLater;
 
         public RenderService(boolean thumbnailRenderer) {
             this.thumbnailRenderer = thumbnailRenderer;
@@ -980,6 +1091,22 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         @Override
         protected Task<Image> createTask() {
             return new RenderTask(thumbnailRenderer, getPage(), getScale());
+        }
+        
+        public void restartLater() {
+            if (isRunning()) {
+                restartLater = true;
+            } else {
+                restart();
+            }
+        }
+        
+        @Override
+        protected void succeeded() {
+            if (restartLater) {
+                restartLater = false;
+                restart();
+            }
         }
     }
 
@@ -1021,6 +1148,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             // only highlight search results in the main view (for performance reasons)
             if (!thumbnail) {
                 highlightSearchResults(pageNumber, scale, bufferedImage);
+                highlightSelection(pageNumber, scale, bufferedImage);
             }
 
             return SwingFXUtils.toFXImage(bufferedImage, null);
@@ -1048,6 +1176,26 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                             (int) highlightMarker.getWidth(),
                             (int) highlightMarker.getHeight());
                 });
+            }
+        }
+        
+        private void highlightSelection(int pageNumber, float scale, BufferedImage bufferedImage) {
+            Selection selection = getSkinnable().getSelection();
+            if (selection != null && selection.getPageNumber() == pageNumber) {
+                Graphics2D graphics = (Graphics2D) bufferedImage.getGraphics();
+                graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f));
+
+                Color selectionColor = getSkinnable().getSelectionColor();
+
+                graphics.setStroke(new BasicStroke(8));
+                graphics.setColor(new java.awt.Color((int) (255 * selectionColor.getRed()), (int) (255 * selectionColor.getGreen()), (int) (255 * selectionColor.getBlue())));
+                selection.getScaledMarker(scale).forEach(highlightMarker -> {
+                    graphics.fillRect(
+                            (int) highlightMarker.getMinX(),
+                            (int) highlightMarker.getMinY(),
+                            (int) highlightMarker.getWidth(),
+                            (int) highlightMarker.getHeight());
+                });                
             }
         }
     }
