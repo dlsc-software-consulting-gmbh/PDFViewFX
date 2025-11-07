@@ -5,9 +5,15 @@ import com.dlsc.pdfviewfx.skins.PDFViewSkin;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Skin;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.paint.Color;
 
 import java.awt.image.BufferedImage;
@@ -62,6 +68,12 @@ public class PDFView extends Control {
 
             setSearchText(null);
         });
+
+        MenuItem copyMenuItem = new MenuItem("Copy");
+        copyMenuItem.disableProperty().bind(selection.isNull());
+        copyMenuItem.setOnAction(e -> copy());
+        copyMenuItem.setAccelerator(KeyCombination.keyCombination("Shortcut+C"));
+        setContextMenu(new ContextMenu(copyMenuItem));
     }
 
     @Override
@@ -272,6 +284,17 @@ public class PDFView extends Control {
     }
 
     /**
+     * Copy selected text to clipboard.
+     */
+    public void copy() {
+        if (getSelection() != null) {
+            ClipboardContent content = new ClipboardContent();
+            content.putString(getSelection().getSelectedText());
+            Clipboard.getSystemClipboard().setContent(content);
+        }
+    }
+
+    /**
      * A flag that controls whether we always want to show the entire page. If "true" then the page
      * will be constantly resized to fit the viewport of the scroll pane in which it is showing. In
      * this mode zooming is not possible.
@@ -357,6 +380,7 @@ public class PDFView extends Control {
     }
 
     public final void setDocument(Document document) {
+        setSelection(null);
         this.document.set(document);
     }
 
@@ -437,6 +461,46 @@ public class PDFView extends Control {
         this.searchResultColor.set(searchResultColor);
     }
 
+    private final ObjectProperty<Selection> selection = new SimpleObjectProperty<>(this, "selection");
+
+    /**
+     * Stores the currently selected search result.
+     *
+     * @return the selected search result
+     * @see #getSearchResults()
+     * @see #setSearchText(String)
+     */
+    public final ObjectProperty<Selection> selectionProperty() {
+        return selection;
+    }
+
+    public final Selection getSelection() {
+        return selection.get();
+    }
+
+    public final void setSelection(Selection selection) {
+        this.selection.set(selection);
+    }
+    
+    private final ObjectProperty<Color> selectionColor = new SimpleObjectProperty<>(this, "selectionColor", Color.BLUE);
+
+    /**
+     * Stores the color to be used for highlighting search results.
+     *
+     * @return the search result highlight color
+     */
+    public final ObjectProperty<Color> selectionColorProperty() {
+        return selectionColor;
+    }
+
+    public final Color getSelectionColor() {
+        return selectionColor.get();
+    }
+
+    public final void setSelectionColor(Color selectionColor) {
+        this.selectionColor.set(selectionColor);
+    }
+    
     /**
      * Loads the given PDF file.
      *
@@ -636,4 +700,13 @@ public class PDFView extends Control {
             return Objects.hash(searchText, textSnippet, pageNumber, marker);
         }
     }
+    
+    /**
+     * Documents that can have text selection need to implement this
+     * interface
+     */
+    public interface SelectableDocument extends Document {
+        Selection getSelection(int pageNumber, Point2D start, Point2D end, Selection.Mode mode);
+    }
+    
 }
