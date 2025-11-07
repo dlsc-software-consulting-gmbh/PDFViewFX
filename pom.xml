@@ -7,7 +7,7 @@
     <name>PDFViewFXParent</name>
     <groupId>com.dlsc.pdfviewfx</groupId>
     <artifactId>parent</artifactId>
-    <version>3.3.3</version>
+    <version>3.4.0</version>
     <packaging>pom</packaging>
 
     <parent>
