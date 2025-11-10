@@ -37,7 +37,8 @@ public class PageNumberTextField extends TextField {
 
                     //If change don't contains " check if change is in range
                     if (!change.getControlText().contains("\"")) {
-                        if (Integer.parseInt(change.getControlNewText()) < 1 || Integer.parseInt(change.getControlNewText()) > getNumberOfPages()) {
+                        int newVal = Integer.parseInt(change.getControlNewText());
+                        if (newVal < 1 || (newVal > getNumberOfPages() && newVal != 1)) {
                             return null;
                         }
                     } else {
@@ -80,6 +81,7 @@ public class PageNumberTextField extends TextField {
 
     public final void setValue(int value) {
         this.value.set(value);
+        setText("" + value);
     }
 
     private final IntegerProperty numberOfPages = new SimpleIntegerProperty(this, "numberOfPages", 0);
