@@ -30,26 +30,17 @@ public class PageNumberTextField extends TextField {
                     }
 
                 } else {
-                    //If Input is not a number don't change anything
-                    if (change.getText().matches("[^0-9]")) {
-                        return null;
-                    }
-
-                    //If change don't contains " check if change is in range
-                    if (!change.getControlText().contains("\"")) {
-                        if (Integer.parseInt(change.getControlNewText()) < 1 || Integer.parseInt(change.getControlNewText()) > getNumberOfPages()) {
-                            return null;
-                        }
-                    } else {
-                        //if change contains "" remove "" and check if is in range
+                    try {
                         String s = change.getControlNewText();
-
-                        s = s.replaceAll("[\"]", "");
+                        if (s.contains("\"")) {  // remove ", if present
+                            s = s.replaceAll("[\"]", "");
+                        }
                         int value = Integer.parseInt(s);
-
-                        if (value < 1 || value > getNumberOfPages()) {
+                        if (value < 1 || (value > getNumberOfPages() && value != 1)) {
                             return null;
                         }
+                    } catch (NumberFormatException e) { // e.g. overflow, not a number, etc.
+                        return null;
                     }
                 }
             }
@@ -80,6 +71,7 @@ public class PageNumberTextField extends TextField {
 
     public final void setValue(int value) {
         this.value.set(value);
+        setText("" + value);
     }
 
     private final IntegerProperty numberOfPages = new SimpleIntegerProperty(this, "numberOfPages", 0);
