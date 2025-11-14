@@ -290,7 +290,8 @@ public class PDFViewSkin extends SkinBase<PDFView> {
     class SelectionService extends Service<Selection> {
         private Point2D start, end;
         private Selection.Mode mode;
-        
+        private volatile boolean restartLater;
+
         public void setStart(Point2D start) {
             this.start = start;
             this.end = null;
@@ -307,6 +308,23 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         @Override
         protected Task<Selection> createTask() {
             return new SelectionTask(getSkinnable().getDocument(), getSkinnable().getPage(), start, end, mode);
+        }
+
+        public void restartLater() {
+            if (isRunning()) {
+                restartLater = true;
+            } else {
+                restart();
+            }
+        }
+
+        @Override
+        protected void succeeded() {
+            if (restartLater) {
+                restartLater = false;
+                restart();
+            }
+
         }
     }
     
@@ -333,6 +351,11 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             } else {
                 return new Selection(-1,  List.of(), "");
             }
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return super.cancel(false); // #21: Must not interrupt pdfbox otherwise the PDDocument will no longer be able to render pages
         }
     }
     
@@ -789,7 +812,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                     selectionService.setStart(getMouseEventPoint(evt));
                     selectionService.setEnd(getMouseEventPoint(evt));
                     selectionService.setMode(Selection.Mode.forClickCount(evt.getClickCount()));
-                    selectionService.restart();
+                    selectionService.restartLater();
                     evt.consume();
                 }
             });
@@ -798,7 +821,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                 if (evt.getButton() == MouseButton.PRIMARY) {
                     group.setCursor(Cursor.DEFAULT);
                     selectionService.setEnd(getMouseEventPoint(evt));
-                    selectionService.restart();
+                    selectionService.restartLater();
                     evt.consume();
                 }
             });
@@ -806,7 +829,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             group.addEventHandler(MouseEvent.MOUSE_DRAGGED, evt -> {
                 if (evt.getButton() == MouseButton.PRIMARY) {
                     selectionService.setEnd(getMouseEventPoint(evt));
-                    selectionService.restart();
+                    selectionService.restartLater();
                     evt.consume();
                 }
             });

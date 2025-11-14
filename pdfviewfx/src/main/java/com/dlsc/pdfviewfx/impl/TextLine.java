@@ -55,7 +55,7 @@ class TextLine {
         }
         int startIndex = getStartIndex(startx, mode);
         int endIndex = getEndIndex(endx, mode);
-        if (startIndex != -1 && endIndex != -1) {
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
             for (int idx = startIndex; idx <= endIndex; idx++) {
                 selectionText.append(textPositions.get(idx).getUnicode());
             }
@@ -128,7 +128,7 @@ class TextLine {
         float descenderHeight = Math.abs((fontDescriptor.getDescent() / 1000.0f) * fontSize);
         float ascenderHeight = Math.abs((fontDescriptor.getAscent() / 1000.0f) * fontSize);
 
-        top = Math.min(top, textPosition.getYDirAdj() - ascenderHeight + descenderHeight);
+        top = Math.min(top, textPosition.getYDirAdj() - ascenderHeight);
         bottom = Math.max(bottom, textPosition.getYDirAdj() + descenderHeight);
         textPositions.add(textPosition);
     }
