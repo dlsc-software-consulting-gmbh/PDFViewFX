@@ -31,6 +31,7 @@ import java.util.function.Supplier;
  */
 public class PDFView extends Control {
 
+    private Translations translations = new Translations();
     /**
      * Constructs a new view.
      */
@@ -69,7 +70,7 @@ public class PDFView extends Control {
             setSearchText(null);
         });
 
-        MenuItem copyMenuItem = new MenuItem("Copy");
+        MenuItem copyMenuItem = new MenuItem(translations.getTranslation("Copy"));
         copyMenuItem.disableProperty().bind(selection.isNull());
         copyMenuItem.setOnAction(e -> copy());
         copyMenuItem.setAccelerator(KeyCombination.keyCombination("Shortcut+C"));
