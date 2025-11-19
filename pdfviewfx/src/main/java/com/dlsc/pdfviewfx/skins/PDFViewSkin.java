@@ -6,6 +6,7 @@ import com.dlsc.pdfviewfx.PDFView.SearchResult;
 import com.dlsc.pdfviewfx.PDFView.SearchableDocument;
 import com.dlsc.pdfviewfx.Selection;
 
+import com.dlsc.pdfviewfx.Translations;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
@@ -48,10 +49,6 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -59,6 +56,8 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class PDFViewSkin extends SkinBase<PDFView> {
+
+    private Translations translations = new Translations();
 
     // Access to PDF document must be single threaded (see Apache PdfBox website FAQs)
     private final Executor EXECUTOR = Executors.newSingleThreadExecutor(r -> {
@@ -77,13 +76,9 @@ public class PDFViewSkin extends SkinBase<PDFView> {
     
     private SelectionService selectionService = new SelectionService();
 
-    private Properties languageProperties = new Properties();
-
 
     public PDFViewSkin(PDFView view) {
         super(view);
-
-        loadLanguageProperties(Locale.getDefault().getLanguage());
 
         view.getSearchResults().addListener((Observable it) -> {
             ObservableList<PDFView.SearchResult> searchResults = view.getSearchResults();
@@ -355,20 +350,20 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         ToggleButton showAll = new ToggleButton();
         showAll.setGraphic(new FontIcon(MaterialDesign.MDI_FULLSCREEN));
         showAll.getStyleClass().addAll("tool-bar-button", "show-all-button");
-        showAll.setTooltip(new Tooltip(getTranslation("ShowAll")));
+        showAll.setTooltip(new Tooltip(translations.getTranslation("ShowAll")));
         showAll.selectedProperty().bindBidirectional(pdfView.showAllProperty());
 
         // show thubnails
         ToggleButton showThumbnails = new ToggleButton();
         showThumbnails.setGraphic(new FontIcon(MaterialDesign.MDI_VIEW_LIST));
         showThumbnails.getStyleClass().addAll("tool-bar-button", "show-thumbnails-button");
-        showThumbnails.setTooltip(new Tooltip(getTranslation("ShowThumbnails")));
+        showThumbnails.setTooltip(new Tooltip(translations.getTranslation("ShowThumbnails")));
         showThumbnails.selectedProperty().bindBidirectional(pdfView.showThumbnailsProperty());
 
         // paging
         Button goLeft = new Button();
         goLeft.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_LEFT));
-        goLeft.setTooltip(new Tooltip(getTranslation("ShowPreviousPage")));
+        goLeft.setTooltip(new Tooltip(translations.getTranslation("ShowPreviousPage")));
         goLeft.setOnAction(evt -> view.gotoPreviousPage());
         goLeft.getStyleClass().addAll("tool-bar-button", "previous-page-button");
         goLeft.disableProperty().bind(Bindings.createBooleanBinding(() -> view.getPage() <= 0, view.pageProperty(), view.documentProperty()));
@@ -376,14 +371,14 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         Button goRight = new Button();
         goRight.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_RIGHT));
-        goRight.setTooltip(new Tooltip(getTranslation("ShowNextPage")));
+        goRight.setTooltip(new Tooltip(translations.getTranslation("ShowNextPage")));
         goRight.setOnAction(evt -> view.gotoNextPage());
         goRight.getStyleClass().addAll("tool-bar-button", "next-page-button");
         goRight.disableProperty().bind(Bindings.createBooleanBinding(() -> view.getDocument() == null || view.getDocument().getNumberOfPages() <= view.getPage() + 1, view.pageProperty(), view.documentProperty()));
         goRight.setMaxHeight(Double.MAX_VALUE);
 
         PageNumberTextField pageField = new PageNumberTextField();
-        pageField.setTooltip(new Tooltip(getTranslation("CurrentPageNumber")));
+        pageField.setTooltip(new Tooltip(translations.getTranslation("CurrentPageNumber")));
         pageField.getStyleClass().add("page-field");
         pageField.setMaxHeight(Double.MAX_VALUE);
         pageField.setAlignment(Pos.CENTER);
@@ -394,7 +389,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         view.documentProperty().addListener(it -> updateMaximumValue(pageField));
 
         Button totalPages = new Button();
-        totalPages.setTooltip(new Tooltip(getTranslation("TotalNumberPages")));
+        totalPages.setTooltip(new Tooltip(translations.getTranslation("TotalNumberPages")));
         totalPages.getStyleClass().add("page-number-button");
         totalPages.setMaxHeight(Double.MAX_VALUE);
         totalPages.setAlignment(Pos.CENTER);
@@ -412,13 +407,13 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         // rotate buttons
         Button rotateLeft = new Button();
         rotateLeft.getStyleClass().addAll("tool-bar-button", "rotate-left");
-        rotateLeft.setTooltip(new Tooltip(getTranslation("RotatePageLeft")));
+        rotateLeft.setTooltip(new Tooltip(translations.getTranslation("RotatePageLeft")));
         rotateLeft.setGraphic(new FontIcon(MaterialDesign.MDI_ROTATE_LEFT));
         rotateLeft.setOnAction(evt -> view.rotateLeft());
 
         Button rotateRight = new Button();
         rotateRight.getStyleClass().addAll("tool-bar-button", "rotate-right");
-        rotateRight.setTooltip(new Tooltip(getTranslation("RotatePageRight")));
+        rotateRight.setTooltip(new Tooltip(translations.getTranslation("RotatePageRight")));
         rotateRight.setGraphic(new FontIcon(MaterialDesign.MDI_ROTATE_RIGHT));
         rotateRight.setOnAction(evt -> view.rotateRight());
 
@@ -429,17 +424,17 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         zoomSlider.valueProperty().bindBidirectional(view.zoomFactorProperty());
         zoomSlider.disableProperty().bind(view.showAllProperty());
 
-        Label zoomLabel = new Label(getTranslation("Zoom"));
+        Label zoomLabel = new Label(translations.getTranslation("Zoom"));
         zoomLabel.disableProperty().bind(view.showAllProperty());
 
         // search icon / field
         FontIcon searchClearIcon = new FontIcon(MaterialDesign.MDI_CLOSE_CIRCLE);
         searchClearIcon.visibleProperty().bind(view.searchTextProperty().isNotEmpty());
         searchClearIcon.setOnMouseClicked(evt -> view.setSearchText(null));
-        Tooltip.install(searchClearIcon, new Tooltip(getTranslation("ClearSearch")));
+        Tooltip.install(searchClearIcon, new Tooltip(translations.getTranslation("ClearSearch")));
 
         CustomTextField searchField = new CustomTextField();
-        searchField.setText(getTranslation("SearchText"));
+        searchField.setText(translations.getTranslation("SearchText"));
         searchField.getStyleClass().add("search-field");
         searchField.addEventHandler(KeyEvent.KEY_PRESSED, evt -> {
             if (evt.getCode() == KeyCode.ESCAPE) {
@@ -448,7 +443,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         });
 
         searchField.setRight(searchClearIcon);
-        searchField.setPromptText(getTranslation("SearchPrompt"));
+        searchField.setPromptText(translations.getTranslation("SearchPrompt"));
         searchField.textProperty().bindBidirectional(view.searchTextProperty());
         searchField.managedProperty().bind(searchField.visibleProperty());
         searchField.visibleProperty().bind(Bindings.createBooleanBinding(() -> pdfView.getDocument() instanceof SearchableDocument, pdfView.documentProperty()));
@@ -477,12 +472,12 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         PDFView view = getSkinnable();
 
         Label searchLabel = new Label();
-        searchLabel.textProperty().bind(Bindings.createObjectBinding(() -> getTranslation("FoundOccurrences", view.getSearchResults().size(), pageSearchResults.size()), view.getSearchResults(), pageSearchResults));
+        searchLabel.textProperty().bind(Bindings.createObjectBinding(() -> translations.getTranslation("FoundOccurrences", view.getSearchResults().size(), pageSearchResults.size()), view.getSearchResults(), pageSearchResults));
         searchLabel.getStyleClass().add("search-result-label");
 
         Button previousResultButton = new Button();
         previousResultButton.getStyleClass().addAll("search-bar-button", "previous-search-result");
-        previousResultButton.setTooltip(new Tooltip(getTranslation("GoToPreviousSearchResult")));
+        previousResultButton.setTooltip(new Tooltip(translations.getTranslation("GoToPreviousSearchResult")));
         previousResultButton.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_LEFT));
         previousResultButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         previousResultButton.setOnAction(evt -> showPreviousSearchResult());
@@ -490,13 +485,13 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         Button nextResultButton = new Button();
         nextResultButton.getStyleClass().addAll("search-bar-button", "next-search-result");
-        nextResultButton.setTooltip(new Tooltip(getTranslation("GoToNextSearchResult")));
+        nextResultButton.setTooltip(new Tooltip(translations.getTranslation("GoToNextSearchResult")));
         nextResultButton.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_RIGHT));
         nextResultButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         nextResultButton.setOnAction(evt -> showNextSearchResult());
         nextResultButton.setMaxHeight(Double.MAX_VALUE);
 
-        Button doneButton = new Button(getTranslation("Done"));
+        Button doneButton = new Button(translations.getTranslation("Done"));
         doneButton.setOnAction(evt -> view.setSearchText(null));
         doneButton.getStyleClass().addAll("search-bar-button");
 
@@ -1279,8 +1274,8 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
             if (item != null && !empty) {
 
-                pageLabel.setText(getTranslation("Page", (item.getPageNumber() + 1)));
-                matchesLabel.setText(getTranslation("Matches", item.getItems().size()));
+                pageLabel.setText(translations.getTranslation("Page", (item.getPageNumber() + 1)));
+                matchesLabel.setText(translations.getTranslation("Matches", item.getItems().size()));
 
                 String text = item.getItems().stream()
                         .filter(searchResult -> searchResult.getTextSnippet() != null)
@@ -1409,39 +1404,5 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         public int hashCode() {
             return Objects.hash(pageNumber, searchText);
         }
-    }
-
-    public void loadLanguageProperties(String language) {
-        URL propertiesPath = null;
-        try {
-            propertiesPath = getSkinnable().getClass().getResource(getPropertiesFileName(language));
-            languageProperties.load(new FileInputStream(propertiesPath.getPath()));
-        } catch (IOException e) {
-            System.out.println("Language.properties with URL '" + propertiesPath  + "' could not be loaded: " + e.getMessage());
-        }
-    }
-
-    private static String getPropertiesFileName(String language) {
-        String propertiesFileName = "language.properties";
-
-        if(language.toLowerCase().contains("de")){
-            propertiesFileName = "language_de.properties";
-        } else if(language.toLowerCase().contains("fr")){
-            propertiesFileName = "language_fr.properties";
-        }
-
-        return propertiesFileName;
-    }
-
-    private String getTranslation(String languageString, Object ... arguments) {
-        String message = languageString;
-        if (languageProperties != null) {
-            if (languageProperties.containsKey(languageString)) {
-                message = languageProperties.getProperty(languageString);
-            } else {
-                message = languageString;
-            }
-        }
-        return new MessageFormat(message).format(arguments);
     }
 }
