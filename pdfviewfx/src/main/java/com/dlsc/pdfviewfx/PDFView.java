@@ -5,6 +5,15 @@ import com.dlsc.pdfviewfx.skins.PDFViewSkin;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.css.CssMetaData;
+import javafx.css.Styleable;
+import javafx.css.StyleableBooleanProperty;
+import javafx.css.StyleableDoubleProperty;
+import javafx.css.StyleableObjectProperty;
+import javafx.css.StyleableProperty;
+import javafx.css.converter.BooleanConverter;
+import javafx.css.converter.ColorConverter;
+import javafx.css.converter.SizeConverter;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.ContextMenu;
@@ -20,6 +29,8 @@ import java.awt.image.BufferedImage;
 import java.awt.print.Pageable;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -30,6 +41,14 @@ import java.util.function.Supplier;
  * rotate, fit size, etc...
  */
 public class PDFView extends Control {
+
+    private static final boolean DEFAULT_SHOW_THUMBNAILS = true;
+    private static final boolean DEFAULT_SHOW_TOOLBAR = true;
+    private static final boolean DEFAULT_SHOW_SEARCH_RESULTS = true;
+    private static final boolean DEFAULT_SHOW_ALL = false;
+    private static final double DEFAULT_THUMBNAIL_SIZE = 200d;
+    private static final Color DEFAULT_SEARCH_RESULT_COLOR = Color.RED;
+    private static final Color DEFAULT_SELECTION_COLOR = Color.BLUE;
 
     /**
      * Constructs a new view.
@@ -86,16 +105,33 @@ public class PDFView extends Control {
         return Objects.requireNonNull(PDFView.class.getResource("pdf-view.css")).toExternalForm();
     }
 
-    /**
-     * A flag used to control whether the view will display a thumbnail version of the pages
-     * on the left-hand side.
-     */
-    private final BooleanProperty showThumbnails = new SimpleBooleanProperty(this, "showThumbnails", true);
+    // show thumbnails
+
+    private final BooleanProperty showThumbnails = new StyleableBooleanProperty(DEFAULT_SHOW_THUMBNAILS) {
+        @Override
+        public Object getBean() {
+            return PDFView.this;
+        }
+
+        @Override
+        public String getName() {
+            return "showThumbnails";
+        }
+
+        @Override
+        public CssMetaData<? extends Styleable, Boolean> getCssMetaData() {
+            return StyleableProperties.SHOW_THUMBNAILS;
+        }
+    };
 
     public final boolean isShowThumbnails() {
         return showThumbnails.get();
     }
 
+    /**
+     * A flag used to control whether the view will display a thumbnail version of the pages
+     * on the left-hand side.
+     */
     public final BooleanProperty showThumbnailsProperty() {
         return showThumbnails;
     }
@@ -104,17 +140,33 @@ public class PDFView extends Control {
         this.showThumbnails.set(showThumbnails);
     }
 
+    // show toolbar
 
-    /**
-     * A flag used to control whether the view will include a toolbar with zoom, search, rotation
-     * controls.
-     */
-    private final BooleanProperty showToolBar = new SimpleBooleanProperty(this, "showToolBar", true);
+    private final BooleanProperty showToolBar = new StyleableBooleanProperty(DEFAULT_SHOW_TOOLBAR) {
+        @Override
+        public Object getBean() {
+            return PDFView.this;
+        }
+
+        @Override
+        public String getName() {
+            return "showToolBar";
+        }
+
+        @Override
+        public CssMetaData<? extends Styleable, Boolean> getCssMetaData() {
+            return StyleableProperties.SHOW_TOOLBAR;
+        }
+    };
 
     public final boolean isShowToolBar() {
         return showToolBar.get();
     }
 
+    /**
+     * A flag used to control whether the view will include a toolbar with zoom, search, rotation
+     * controls.
+     */
     public final BooleanProperty showToolBarProperty() {
         return showToolBar;
     }
@@ -123,11 +175,24 @@ public class PDFView extends Control {
         this.showToolBar.set(showToolBar);
     }
 
-    /**
-     * A flag used to control whether the view will display aggregated search results
-     * on the left-hand side.
-     */
-    private final BooleanProperty showSearchResults = new SimpleBooleanProperty(this, "showSearchResults", true);
+    // show search results
+
+    private final BooleanProperty showSearchResults = new StyleableBooleanProperty(DEFAULT_SHOW_SEARCH_RESULTS) {
+        @Override
+        public Object getBean() {
+            return PDFView.this;
+        }
+
+        @Override
+        public String getName() {
+            return "showSearchResults";
+        }
+
+        @Override
+        public CssMetaData<? extends Styleable, Boolean> getCssMetaData() {
+            return StyleableProperties.SHOW_TOOLBAR;
+        }
+    };
 
     public final boolean isShowSearchResults() {
         return showSearchResults.get();
@@ -142,7 +207,7 @@ public class PDFView extends Control {
     }
 
     /**
-     * Caching thumbnails can be useful for low powered systems with enough memory. The default value
+     * Caching thumbnails can be useful for low-powered systems with enough memory. The default value
      * is "true". When set to "true" each thumbnail image will be added to a hashmap cache, hence making it
      * necessary to only render once.
      */
@@ -294,17 +359,34 @@ public class PDFView extends Control {
         }
     }
 
-    /**
-     * A flag that controls whether we always want to show the entire page. If "true" then the page
-     * will be constantly resized to fit the viewport of the scroll pane in which it is showing. In
-     * this mode zooming is not possible.
-     */
-    private final BooleanProperty showAll = new SimpleBooleanProperty(this, "showAll", false);
+    // show all
+
+    private final BooleanProperty showAll = new StyleableBooleanProperty(DEFAULT_SHOW_SEARCH_RESULTS) {
+        @Override
+        public Object getBean() {
+            return PDFView.this;
+        }
+
+        @Override
+        public String getName() {
+            return "showAll";
+        }
+
+        @Override
+        public CssMetaData<? extends Styleable, Boolean> getCssMetaData() {
+            return StyleableProperties.SHOW_ALL;
+        }
+    };
 
     public final boolean isShowAll() {
         return showAll.get();
     }
 
+    /**
+     * A flag that controls whether we always want to show the entire page. If "true" then the page
+     * will be constantly resized to fit the viewport of the scroll pane in which it is showing. In
+     * this mode zooming is not possible.
+     */
     public final BooleanProperty showAllProperty() {
         return showAll;
     }
@@ -313,15 +395,15 @@ public class PDFView extends Control {
         this.showAll.set(showAll);
     }
 
-    /**
-     * The resolution / scale at which the thumbnails will be rendered. The default value is "1".
-     */
     private final FloatProperty thumbnailPageScale = new SimpleFloatProperty(this, "thumbnailScale", 1f);
 
     public final float getThumbnailPageScale() {
         return thumbnailPageScale.get();
     }
 
+    /**
+     * The resolution / scale at which the thumbnails will be rendered. The default value is "1".
+     */
     public final FloatProperty thumbnailPageScaleProperty() {
         return thumbnailPageScale;
     }
@@ -330,17 +412,19 @@ public class PDFView extends Control {
         this.thumbnailPageScale.set(thumbnailPageScale);
     }
 
-    /**
-     * The resolution / scale at which the main page will be rendered. The default value is "4".
-     * The value has direct impact on the size of the images being generated and the memory requirements.
-     * Keep low on low powered / low resolution systems and high on large systems with hires displays.
-     */
+    // page scale
+
     private final FloatProperty pageScale = new SimpleFloatProperty(this, "pageScale", 4f);
 
     public final float getPageScale() {
         return pageScale.get();
     }
 
+    /**
+     * The resolution / scale at which the main page will be rendered. The default value is "4".
+     * The value has a direct impact on the size of the images being generated and the memory requirements.
+     * Keep low on low-powered / low-resolution systems and high on large systems with hires displays.
+     */
     public final FloatProperty pageScaleProperty() {
         return pageScale;
     }
@@ -349,15 +433,33 @@ public class PDFView extends Control {
         this.pageScale.set(pageScale);
     }
 
-    /**
-     * The size used for the images displayed in the thumbnail view. The default value is "200".
-     */
-    private final DoubleProperty thumbnailSize = new SimpleDoubleProperty(this, "thumbnailSize", 200d);
+    // thumbnail size
+
+    private final DoubleProperty thumbnailSize = new StyleableDoubleProperty(DEFAULT_THUMBNAIL_SIZE) {
+
+        @Override
+        public Object getBean() {
+            return PDFView.this;
+        }
+
+        @Override
+        public String getName() {
+            return "thumbnailSize";
+        }
+
+        @Override
+        public CssMetaData<? extends Styleable, Number> getCssMetaData() {
+            return StyleableProperties.THUMBNAIL_SIZE;
+        }
+    };
 
     public final double getThumbnailSize() {
         return thumbnailSize.get();
     }
 
+    /**
+     * The size used for the images displayed in the thumbnail view. The default value is "200".
+     */
     public final DoubleProperty thumbnailSizeProperty() {
         return thumbnailSize;
     }
@@ -366,11 +468,11 @@ public class PDFView extends Control {
         this.thumbnailSize.set(thumbnailSize);
     }
 
+    private final ObjectProperty<Document> document = new SimpleObjectProperty<>(this, "document");
+
     /**
      * The currently loaded and displayed PDF document.
      */
-    private final ObjectProperty<Document> document = new SimpleObjectProperty<>(this, "document");
-
     public final ObjectProperty<Document> documentProperty() {
         return document;
     }
@@ -442,7 +544,22 @@ public class PDFView extends Control {
         this.selectedSearchResult.set(selectedSearchResult);
     }
 
-    private final ObjectProperty<Color> searchResultColor = new SimpleObjectProperty<>(this, "searchResultColor", Color.RED);
+    private final ObjectProperty<Color> searchResultColor = new StyleableObjectProperty<>(DEFAULT_SEARCH_RESULT_COLOR) {
+        @Override
+        public Object getBean() {
+            return PDFView.this;
+        }
+
+        @Override
+        public String getName() {
+            return "searchResultColor";
+        }
+
+        @Override
+        public CssMetaData<? extends Styleable, Color> getCssMetaData() {
+            return StyleableProperties.SEARCH_RESULT_COLOR;
+        }
+    };
 
     /**
      * Stores the color to be used for highlighting search results.
@@ -481,8 +598,26 @@ public class PDFView extends Control {
     public final void setSelection(Selection selection) {
         this.selection.set(selection);
     }
-    
-    private final ObjectProperty<Color> selectionColor = new SimpleObjectProperty<>(this, "selectionColor", Color.BLUE);
+
+    // selection color
+
+    private final ObjectProperty<Color> selectionColor = new StyleableObjectProperty<>(DEFAULT_SELECTION_COLOR) {
+
+        @Override
+        public Object getBean() {
+            return PDFView.this;
+        }
+
+        @Override
+        public String getName() {
+            return "selectionColor";
+        }
+
+        @Override
+        public CssMetaData<? extends Styleable, Color> getCssMetaData() {
+            return StyleableProperties.SELECTION_COLOR;
+        }
+    };
 
     /**
      * Stores the color to be used for highlighting search results.
@@ -708,5 +843,114 @@ public class PDFView extends Control {
     public interface SelectableDocument extends Document {
         Selection getSelection(int pageNumber, Point2D start, Point2D end, Selection.Mode mode);
     }
-    
+
+    private static class StyleableProperties {
+        private static final CssMetaData<PDFView, Boolean> SHOW_THUMBNAILS = new CssMetaData<>("-fx-show-thumbnails", BooleanConverter.getInstance(), DEFAULT_SHOW_THUMBNAILS) {
+
+            @Override
+            public boolean isSettable(PDFView control) {
+                return !control.showThumbnails.isBound();
+            }
+
+            @Override
+            public StyleableProperty<Boolean> getStyleableProperty(PDFView control) {
+                return (StyleableProperty<Boolean>) control.showThumbnailsProperty();
+            }
+        };
+
+        private static final CssMetaData<PDFView, Boolean> SHOW_TOOLBAR = new CssMetaData<>("-fx-show-toolbar", BooleanConverter.getInstance(), DEFAULT_SHOW_TOOLBAR) {
+
+            @Override
+            public boolean isSettable(PDFView control) {
+                return !control.showToolBar.isBound();
+            }
+
+            @Override
+            public StyleableProperty<Boolean> getStyleableProperty(PDFView control) {
+                return (StyleableProperty<Boolean>) control.showToolBarProperty();
+            }
+        };
+
+        private static final CssMetaData<PDFView, Boolean> SHOW_SEARCH_RESULTS = new CssMetaData<>("-fx-show-search-results", BooleanConverter.getInstance(), DEFAULT_SHOW_SEARCH_RESULTS) {
+
+            @Override
+            public boolean isSettable(PDFView control) {
+                return !control.showSearchResults.isBound();
+            }
+
+            @Override
+            public StyleableProperty<Boolean> getStyleableProperty(PDFView control) {
+                return (StyleableProperty<Boolean>) control.showSearchResultsProperty();
+            }
+        };
+
+        private static final CssMetaData<PDFView, Boolean> SHOW_ALL = new CssMetaData<>("-fx-show-all", BooleanConverter.getInstance(), DEFAULT_SHOW_ALL) {
+
+            @Override
+            public boolean isSettable(PDFView control) {
+                return !control.showAll.isBound();
+            }
+
+            @Override
+            public StyleableProperty<Boolean> getStyleableProperty(PDFView control) {
+                return (StyleableProperty<Boolean>) control.showAllProperty();
+            }
+        };
+
+        private static final CssMetaData<PDFView, Number> THUMBNAIL_SIZE = new CssMetaData<>("-fx-thumbnail-size", SizeConverter.getInstance(), DEFAULT_THUMBNAIL_SIZE) {
+
+            @Override
+            public boolean isSettable(PDFView control) {
+                return !control.thumbnailSize.isBound();
+            }
+
+            @Override
+            public StyleableProperty<Number> getStyleableProperty(PDFView control) {
+                return (StyleableProperty<Number>) control.thumbnailSizeProperty();
+            }
+        };
+
+        private static final CssMetaData<PDFView, Color> SEARCH_RESULT_COLOR = new CssMetaData<>("-fx-search-result-color", ColorConverter.getInstance(), DEFAULT_SEARCH_RESULT_COLOR) {
+
+            @Override
+            public boolean isSettable(PDFView control) {
+                return !control.searchResultColor.isBound();
+            }
+
+            @Override
+            public StyleableProperty<Color> getStyleableProperty(PDFView control) {
+                return (StyleableProperty<Color>) control.searchResultColorProperty();
+            }
+        };
+
+        private static final CssMetaData<PDFView, Color> SELECTION_COLOR = new CssMetaData<>("-fx-selection-color", ColorConverter.getInstance(), DEFAULT_SELECTION_COLOR) {
+
+            @Override
+            public boolean isSettable(PDFView control) {
+                return !control.selectionColor.isBound();
+            }
+
+            @Override
+            public StyleableProperty<Color> getStyleableProperty(PDFView control) {
+                return (StyleableProperty<Color>) control.selectionColorProperty();
+            }
+        };
+
+        private static final List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
+
+        static {
+            final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(Control.getClassCssMetaData());
+            Collections.addAll(styleables, SHOW_THUMBNAILS, SHOW_TOOLBAR, SHOW_SEARCH_RESULTS, SHOW_ALL, THUMBNAIL_SIZE, SEARCH_RESULT_COLOR, SELECTION_COLOR);
+            STYLEABLES = Collections.unmodifiableList(styleables);
+        }
+    }
+
+    @Override
+    protected List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
+        return getClassCssMetaData();
+    }
+
+    public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
+        return StyleableProperties.STYLEABLES;
+    }
 }

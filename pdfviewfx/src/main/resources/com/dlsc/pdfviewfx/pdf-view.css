@@ -1,4 +1,11 @@
 .pdf-view {
+    -fx-show-all: false;
+    -fx-show-thumbnails: true;
+    -fx-show-toolbar: true;
+    -fx-show-search-results: true;
+    -fx-thumbnail-size: 200px;
+    -fx-search-result-color: red;
+    -fx-selection-color: blue;
 }
 
 /* ------------------------------------------------------------------
