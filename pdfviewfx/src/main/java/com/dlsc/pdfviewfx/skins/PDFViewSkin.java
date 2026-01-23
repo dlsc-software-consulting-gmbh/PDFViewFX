@@ -324,7 +324,6 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                 restartLater = false;
                 restart();
             }
-
         }
     }
     
@@ -372,7 +371,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         showAll.setTooltip(new Tooltip("Show all / whole page"));
         showAll.selectedProperty().bindBidirectional(pdfView.showAllProperty());
 
-        // show thubnails
+        // show thumbnails
         ToggleButton showThumbnails = new ToggleButton();
         showThumbnails.setGraphic(new FontIcon(MaterialDesign.MDI_VIEW_LIST));
         showThumbnails.getStyleClass().addAll("tool-bar-button", "show-thumbnails-button");
