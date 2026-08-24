@@ -526,10 +526,21 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // print
+        Button print = new Button();
+        print.getStyleClass().addAll("tool-bar-button", "print-button");
+        print.setTooltip(new Tooltip(getString("pdf-view.tooltip.print")));
+        print.setGraphic(new FontIcon(MaterialDesign.MDI_PRINTER));
+        print.setOnAction(evt -> view.print());
+        print.visibleProperty().bind(view.showPrintButtonProperty());
+        print.managedProperty().bind(print.visibleProperty());
+        print.disableProperty().bind(view.documentProperty().isNull().or(view.printingProperty()));
+
         // toolbar
         return new ToolBar(
                 showAll,
                 showThumbnails,
+                print,
                 new Separator(Orientation.VERTICAL),
                 zoomLabel,
                 zoomSlider,

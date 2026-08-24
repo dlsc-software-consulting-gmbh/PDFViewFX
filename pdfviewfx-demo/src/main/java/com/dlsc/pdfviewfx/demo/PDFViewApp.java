@@ -6,9 +6,6 @@ import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
-
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -21,7 +18,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 
-import javax.swing.SwingUtilities;
 import java.io.File;
 import java.util.Objects;
 
@@ -69,23 +65,8 @@ public class PDFViewApp extends Application {
 
         MenuItem printItem = new MenuItem("Print PDF...");
         printItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+p"));
-        printItem.setOnAction(evt -> {
-            SwingUtilities.invokeLater(() -> {
-                PDFView.Document pdfDoc = pdfView.getDocument();
-                if (pdfDoc != null) {
-                    PrinterJob job = PrinterJob.getPrinterJob();
-                    job.setPageable(pdfDoc.getPageable());
-                    if (job.printDialog()) {
-                        try {
-                            job.print();
-                        } catch (PrinterException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-        });
-        printItem.disableProperty().bind(Bindings.isNull(pdfView.documentProperty()));
+        printItem.setOnAction(evt -> pdfView.print(primaryStage));
+        printItem.disableProperty().bind(Bindings.isNull(pdfView.documentProperty()).or(pdfView.printingProperty()));
 
         Menu fileMenu = new Menu("File");
         ObservableList<MenuItem> fileMenuItems = fileMenu.getItems();

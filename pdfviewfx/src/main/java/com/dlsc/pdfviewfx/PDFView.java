@@ -1,7 +1,9 @@
 package com.dlsc.pdfviewfx;
 
 import com.dlsc.pdfviewfx.PDFView.Document.DocumentProcessingException;
+import com.dlsc.pdfviewfx.impl.DefaultPrintHandler;
 import com.dlsc.pdfviewfx.skins.PDFViewSkin;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,9 +26,12 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.paint.Color;
+import javafx.stage.Window;
 
 import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
+import java.awt.print.Printable;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -36,7 +41,10 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A PDF viewer based on Apache PDFBox. The view shows thumbnails
@@ -45,8 +53,11 @@ import java.util.function.Supplier;
  */
 public class PDFView extends Control {
 
+    private static final Logger LOG = Logger.getLogger(PDFView.class.getName());
+
     private static final boolean DEFAULT_SHOW_THUMBNAILS = true;
     private static final boolean DEFAULT_SHOW_TOOLBAR = true;
+    private static final boolean DEFAULT_SHOW_PRINT_BUTTON = true;
     private static final boolean DEFAULT_SHOW_SEARCH_RESULTS = true;
     private static final boolean DEFAULT_SHOW_ALL = false;
     private static final double DEFAULT_THUMBNAIL_SIZE = 200d;
@@ -258,6 +269,43 @@ public class PDFView extends Control {
         this.showToolBar.set(showToolBar);
     }
 
+    // show print button
+
+    private final BooleanProperty showPrintButton = new StyleableBooleanProperty(DEFAULT_SHOW_PRINT_BUTTON) {
+        @Override
+        public Object getBean() {
+            return PDFView.this;
+        }
+
+        @Override
+        public String getName() {
+            return "showPrintButton";
+        }
+
+        @Override
+        public CssMetaData<? extends Styleable, Boolean> getCssMetaData() {
+            return StyleableProperties.SHOW_PRINT_BUTTON;
+        }
+    };
+
+    public final boolean isShowPrintButton() {
+        return showPrintButton.get();
+    }
+
+    /**
+     * A flag used to control whether the toolbar will include a button for printing the
+     * currently loaded document.
+     *
+     * @see #print()
+     */
+    public final BooleanProperty showPrintButtonProperty() {
+        return showPrintButton;
+    }
+
+    public final void setShowPrintButton(boolean showPrintButton) {
+        this.showPrintButton.set(showPrintButton);
+    }
+
     // show search results
 
     private final BooleanProperty showSearchResults = new StyleableBooleanProperty(DEFAULT_SHOW_SEARCH_RESULTS) {
@@ -439,6 +487,150 @@ public class PDFView extends Control {
             ClipboardContent content = new ClipboardContent();
             content.putString(getSelection().getSelectedText());
             Clipboard.getSystemClipboard().setContent(content);
+        }
+    }
+
+    // printing
+
+    /**
+     * A handler responsible for the printing of the currently loaded document.
+     *
+     * @see PDFView#printHandlerProperty()
+     */
+    @FunctionalInterface
+    public interface PrintHandler {
+
+        /**
+         * Creates the print job for the document currently shown by the given view. This method
+         * is called on the JavaFX application thread and it is the right place to show a print
+         * dialog. The returned job will be executed on a background thread.
+         *
+         * @param view  the view that requested the printing
+         * @param owner the window that shall own the print dialog, may be null
+         * @return the print job to execute or null if the user cancelled the printing
+         */
+        Runnable createPrintJob(PDFView view, Window owner);
+    }
+
+    private final ObjectProperty<PrintHandler> printHandler = new SimpleObjectProperty<>(this, "printHandler", new DefaultPrintHandler());
+
+    public final PrintHandler getPrintHandler() {
+        return printHandler.get();
+    }
+
+    /**
+     * The handler that will be used by {@link #print()} to show a print dialog and to
+     * perform the actual printing. The default handler shows the print dialog of the JavaFX
+     * printing API and then prints the document via the {@code javax.print} API.
+     */
+    public final ObjectProperty<PrintHandler> printHandlerProperty() {
+        return printHandler;
+    }
+
+    public final void setPrintHandler(PrintHandler printHandler) {
+        this.printHandler.set(printHandler);
+    }
+
+    private final ObjectProperty<Consumer<Throwable>> onPrintError = new SimpleObjectProperty<>(this, "onPrintError", error -> LOG.log(Level.SEVERE, "printing failed", error));
+
+    public final Consumer<Throwable> getOnPrintError() {
+        return onPrintError.get();
+    }
+
+    /**
+     * The callback that will be invoked on the JavaFX application thread whenever a print job
+     * fails. The default implementation logs the error.
+     */
+    public final ObjectProperty<Consumer<Throwable>> onPrintErrorProperty() {
+        return onPrintError;
+    }
+
+    public final void setOnPrintError(Consumer<Throwable> onPrintError) {
+        this.onPrintError.set(onPrintError);
+    }
+
+    private final ReadOnlyBooleanWrapper printing = new ReadOnlyBooleanWrapper(this, "printing", false);
+
+    public final boolean isPrinting() {
+        return printing.get();
+    }
+
+    /**
+     * A read-only flag that is set to true while a print job started via {@link #print()} is
+     * still running.
+     */
+    public final ReadOnlyBooleanProperty printingProperty() {
+        return printing.getReadOnlyProperty();
+    }
+
+    /**
+     * Prints the currently loaded document. A print dialog will be shown so that the user can
+     * choose the printer and the print settings. The document will then be printed on a
+     * background thread, hence this method returns immediately. Errors will be passed to the
+     * callback stored in {@link #onPrintErrorProperty()}.
+     *
+     * @see #print(Window)
+     */
+    public final void print() {
+        print(getScene() != null ? getScene().getWindow() : null);
+    }
+
+    /**
+     * Prints the currently loaded document. A print dialog will be shown so that the user can
+     * choose the printer and the print settings. The document will then be printed on a
+     * background thread, hence this method returns immediately. Errors will be passed to the
+     * callback stored in {@link #onPrintErrorProperty()}.
+     *
+     * @param owner the window that will own the print dialog, may be null
+     */
+    public final void print(Window owner) {
+        if (!Platform.isFxApplicationThread()) {
+            throw new IllegalStateException("printing has to be started on the JavaFX application thread");
+        }
+
+        if (getDocument() == null || isPrinting()) {
+            return;
+        }
+
+        PrintHandler handler = getPrintHandler();
+        if (handler == null) {
+            return;
+        }
+
+        Runnable job;
+
+        try {
+            job = handler.createPrintJob(this, owner);
+        } catch (Throwable throwable) {
+            handlePrintError(throwable);
+            return;
+        }
+
+        if (job == null) {
+            // the user cancelled the printing
+            return;
+        }
+
+        printing.set(true);
+
+        Thread thread = new Thread(() -> {
+            try {
+                job.run();
+            } catch (Throwable throwable) {
+                Platform.runLater(() -> handlePrintError(throwable));
+            } finally {
+                Platform.runLater(() -> printing.set(false));
+            }
+        }, "PDFView Print Job Thread");
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void handlePrintError(Throwable throwable) {
+        Consumer<Throwable> handler = getOnPrintError();
+        if (handler != null) {
+            handler.accept(throwable);
         }
     }
 
@@ -799,13 +991,69 @@ public class PDFView extends Control {
          * Returns a set of pages to be printed.
          *
          * @return a set of pages to be printed
+         * @deprecated the pageable returned by this method might be backed by resources
+         * that never get released. Use {@link #createPageable()} instead, which returns a
+         * pageable that can (and must) be closed by its caller.
          */
+        @Deprecated
         Pageable getPageable();
+
+        /**
+         * Creates a set of pages to be printed. The returned pageable owns the resources
+         * required for printing (e.g. a separate copy of the parsed document) and has to be
+         * closed by the caller once the print job has finished.
+         * <p>
+         * The default implementation delegates to the deprecated {@link #getPageable()} method
+         * and performs no cleanup upon closing. Implementations that allocate resources for
+         * printing should override this method.
+         *
+         * @return a closable set of pages to be printed
+         */
+        default ClosablePageable createPageable() {
+            Pageable pageable = getPageable();
+            return new ClosablePageable() {
+
+                @Override
+                public int getNumberOfPages() {
+                    return pageable.getNumberOfPages();
+                }
+
+                @Override
+                public PageFormat getPageFormat(int pageIndex) {
+                    return pageable.getPageFormat(pageIndex);
+                }
+
+                @Override
+                public Printable getPrintable(int pageIndex) {
+                    return pageable.getPrintable(pageIndex);
+                }
+
+                @Override
+                public void close() {
+                }
+            };
+        }
 
         /**
          * Closes the document.
          */
         void close();
+
+        /**
+         * A {@link Pageable} that owns resources which have to be released once printing
+         * has finished.
+         *
+         * @see Document#createPageable()
+         */
+        interface ClosablePageable extends Pageable, AutoCloseable {
+
+            /**
+             * Releases the resources held by this pageable. Implementations must be able to
+             * cope with being called more than once.
+             */
+            @Override
+            void close();
+        }
 
         /**
          * A specialized exception for signalling processing errors while
@@ -954,6 +1202,19 @@ public class PDFView extends Control {
             }
         };
 
+        private static final CssMetaData<PDFView, Boolean> SHOW_PRINT_BUTTON = new CssMetaData<>("-fx-show-print-button", BooleanConverter.getInstance(), DEFAULT_SHOW_PRINT_BUTTON) {
+
+            @Override
+            public boolean isSettable(PDFView control) {
+                return !control.showPrintButton.isBound();
+            }
+
+            @Override
+            public StyleableProperty<Boolean> getStyleableProperty(PDFView control) {
+                return (StyleableProperty<Boolean>) control.showPrintButtonProperty();
+            }
+        };
+
         private static final CssMetaData<PDFView, Boolean> SHOW_SEARCH_RESULTS = new CssMetaData<>("-fx-show-search-results", BooleanConverter.getInstance(), DEFAULT_SHOW_SEARCH_RESULTS) {
 
             @Override
@@ -1023,7 +1284,7 @@ public class PDFView extends Control {
 
         static {
             final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(Control.getClassCssMetaData());
-            Collections.addAll(styleables, SHOW_THUMBNAILS, SHOW_TOOLBAR, SHOW_SEARCH_RESULTS, SHOW_ALL, THUMBNAIL_SIZE, SEARCH_RESULT_COLOR, SELECTION_COLOR);
+            Collections.addAll(styleables, SHOW_THUMBNAILS, SHOW_TOOLBAR, SHOW_PRINT_BUTTON, SHOW_SEARCH_RESULTS, SHOW_ALL, THUMBNAIL_SIZE, SEARCH_RESULT_COLOR, SELECTION_COLOR);
             STYLEABLES = Collections.unmodifiableList(styleables);
         }
     }

@@ -20,6 +20,35 @@ are attaching to your application's scene. For more information on **_AtlantaFX_
 ![PDFView](docs/images/pdf-view-atlantafx.png)
 ![PDFView](docs/images/pdf-view-search-atlantafx.png)
 
+## Printing
+
+The view can print the currently loaded document via `PDFView.print()`. A print dialog will be shown
+(using the JavaFX printing API, so it fits into the application) and the document is then printed on a
+background thread via PDFBox and the printing pipeline of the platform, which keeps the output in
+vector quality. All resources allocated for a print job are released as soon as the job has ended.
+
+```java
+PDFView view = new PDFView();
+view.print();                       // uses the window of the view as the dialog owner
+view.print(someOtherWindow);        // explicit dialog owner
+```
+
+While a job is running the read-only property `printingProperty()` is set to `true`. Errors are passed
+to the callback stored in `onPrintErrorProperty()`, which logs them by default. The toolbar shows a
+print button, which can be hidden via `setShowPrintButton(false)` or via CSS (`-fx-show-print-button`).
+Applications that need a completely different printing flow can replace the handler used by `print()`:
+
+```java
+view.setPrintHandler((v, owner) -> {
+    // called on the FX thread, show your own dialog and return the job to run in the background
+    return () -> myPrintService.print(v.getDocument());
+});
+```
+
+Note that `PDFView.Document.getPageable()` is deprecated, because the pageable it returns may hold
+resources that are never released. Use `PDFView.Document.createPageable()` instead, which returns a
+pageable that has to be closed by its caller.
+
 ## Internationalization
 
 All texts shown by the view (tooltips, labels, prompt text, search result summaries, context menu) are

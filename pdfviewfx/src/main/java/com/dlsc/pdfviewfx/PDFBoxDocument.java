@@ -21,7 +21,9 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 
 import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
+import java.awt.print.Printable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,8 +93,66 @@ public class PDFBoxDocument implements SearchableDocument, SelectableDocument {
     }
 
     @Override
+    @Deprecated
     public Pageable getPageable() {
         return new PDFPageable(createDocument());
+    }
+
+    @Override
+    public ClosablePageable createPageable() {
+        return new PrintPageable(createDocument());
+    }
+
+    /**
+     * A pageable that owns the document that was loaded for a single print job.
+     */
+    static class PrintPageable implements ClosablePageable {
+
+        private final PDDocument printDocument;
+        private final PDFPageable pageable;
+
+        private boolean closed;
+
+        PrintPageable(PDDocument printDocument) {
+            this.printDocument = printDocument;
+            this.pageable = new PDFPageable(printDocument);
+        }
+
+        PDDocument getPrintDocument() {
+            return printDocument;
+        }
+
+        @Override
+        public int getNumberOfPages() {
+            return pageable.getNumberOfPages();
+        }
+
+        @Override
+        public PageFormat getPageFormat(int pageIndex) {
+            return pageable.getPageFormat(pageIndex);
+        }
+
+        @Override
+        public Printable getPrintable(int pageIndex) {
+            return pageable.getPrintable(pageIndex);
+        }
+
+        @Override
+        public void close() {
+            synchronized (this) {
+                if (closed) {
+                    return;
+                }
+
+                closed = true;
+            }
+
+            try {
+                printDocument.close();
+            } catch (IOException e) {
+                throw new DocumentProcessingException(e);
+            }
+        }
     }
 
     @Override
