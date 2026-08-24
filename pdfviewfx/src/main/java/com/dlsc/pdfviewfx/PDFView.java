@@ -32,7 +32,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.function.Supplier;
 
 /**
@@ -49,6 +52,41 @@ public class PDFView extends Control {
     private static final double DEFAULT_THUMBNAIL_SIZE = 200d;
     private static final Color DEFAULT_SEARCH_RESULT_COLOR = Color.RED;
     private static final Color DEFAULT_SELECTION_COLOR = Color.BLUE;
+
+    /**
+     * The base name of the resource bundle that ships with this library.
+     */
+    public static final String BUNDLE_BASE_NAME = "com.dlsc.pdfviewfx.pdf-view";
+
+    private static ResourceBundle loadDefaultBundle() {
+        return ResourceBundle.getBundle(BUNDLE_BASE_NAME, Locale.getDefault(), PDFView.class.getModule());
+    }
+
+    /**
+     * Looks up the text stored for the given key. The lookup is performed on the given bundle first. If the
+     * bundle does not contain the key then the default bundle shipped with this library will be used. If even
+     * that one does not contain the key then the key itself will be returned. This ensures that applications
+     * can pass in bundles that only override a subset of the texts without risking a
+     * {@link MissingResourceException} at runtime.
+     *
+     * @param bundle the bundle to use for the lookup, may be null
+     * @param key the key of the requested text
+     * @return the text for the given key, never null
+     */
+    public static String getString(ResourceBundle bundle, String key) {
+        Objects.requireNonNull(key, "key can not be null");
+
+        if (bundle != null && bundle.containsKey(key)) {
+            return bundle.getString(key);
+        }
+
+        ResourceBundle defaultBundle = loadDefaultBundle();
+        if (defaultBundle.containsKey(key)) {
+            return defaultBundle.getString(key);
+        }
+
+        return key;
+    }
 
     /**
      * Constructs a new view.
@@ -88,7 +126,7 @@ public class PDFView extends Control {
             setSearchText(null);
         });
 
-        MenuItem copyMenuItem = new MenuItem("Copy");
+        MenuItem copyMenuItem = new MenuItem(getString("pdf-view.menu.copy"));
         copyMenuItem.disableProperty().bind(selection.isNull());
         copyMenuItem.setOnAction(e -> copy());
         copyMenuItem.setAccelerator(KeyCombination.keyCombination("Shortcut+C"));
@@ -103,6 +141,51 @@ public class PDFView extends Control {
     @Override
     public String getUserAgentStylesheet() {
         return Objects.requireNonNull(PDFView.class.getResource("pdf-view.css")).toExternalForm();
+    }
+
+    // resource bundle
+
+    private final ObjectProperty<ResourceBundle> resourceBundle = new SimpleObjectProperty<>(this, "resourceBundle", loadDefaultBundle()) {
+        @Override
+        public void set(ResourceBundle newValue) {
+            super.set(newValue != null ? newValue : loadDefaultBundle());
+        }
+    };
+
+    /**
+     * Stores the resource bundle that will be used for looking up the texts shown by the view, e.g. the
+     * tooltips of the toolbar buttons. The default bundle ships with this library and supports a number of
+     * languages. Applications can replace it with their own bundle in order to add languages or to override
+     * individual texts. Keys that are missing in a custom bundle will be looked up in the default bundle, so
+     * a bundle only needs to define the texts that it actually wants to change.
+     * <p>
+     * Please note that the texts are only read once, when the view creates its skin. Changing the bundle
+     * afterwards will have no effect on a view that is already showing. The bundle has to be set before the
+     * view gets displayed for the first time.
+     * </p>
+     *
+     * @return the resource bundle used for the texts shown by the view
+     */
+    public final ObjectProperty<ResourceBundle> resourceBundleProperty() {
+        return resourceBundle;
+    }
+
+    public final ResourceBundle getResourceBundle() {
+        return resourceBundle.get();
+    }
+
+    public final void setResourceBundle(ResourceBundle resourceBundle) {
+        this.resourceBundle.set(resourceBundle);
+    }
+
+    /**
+     * Looks up the text stored for the given key in the bundle returned by {@link #getResourceBundle()}.
+     *
+     * @param key the key of the requested text
+     * @return the text for the given key, never null
+     */
+    public final String getString(String key) {
+        return getString(getResourceBundle(), key);
     }
 
     // show thumbnails

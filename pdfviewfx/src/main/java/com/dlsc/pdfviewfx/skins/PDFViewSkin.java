@@ -20,6 +20,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
@@ -48,6 +49,7 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -78,6 +80,21 @@ public class PDFViewSkin extends SkinBase<PDFView> {
     private final Map<Integer, Image> imageCache = new HashMap<>();
     
     private SelectionService selectionService = new SelectionService();
+
+    /**
+     * Returns the text stored for the given key in the resource bundle of the view.
+     */
+    private String getString(String key) {
+        return getSkinnable().getString(key);
+    }
+
+    /**
+     * Returns the text stored for the given key in the resource bundle of the view, formatted
+     * with the given arguments via {@link MessageFormat}.
+     */
+    private String formatString(String key, Object... args) {
+        return MessageFormat.format(getString(key), args);
+    }
 
     public PDFViewSkin(PDFView view) {
         super(view);
@@ -291,7 +308,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             if (document instanceof PDFView.SearchableDocument) {
                 return new SearchTask((PDFView.SearchableDocument) document, getSkinnable().getSearchText());
             } else {
-                throw new SearchException("Document is not searchable.");
+                throw new SearchException(getString("pdf-view.error.not-searchable"));
             }
         }
 
@@ -409,20 +426,20 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         ToggleButton showAll = new ToggleButton();
         showAll.setGraphic(new FontIcon(MaterialDesign.MDI_FULLSCREEN));
         showAll.getStyleClass().addAll("tool-bar-button", "show-all-button");
-        showAll.setTooltip(new Tooltip("Show all / whole page"));
+        showAll.setTooltip(new Tooltip(getString("pdf-view.tooltip.show-all")));
         showAll.selectedProperty().bindBidirectional(pdfView.showAllProperty());
 
         // show thumbnails
         ToggleButton showThumbnails = new ToggleButton();
         showThumbnails.setGraphic(new FontIcon(MaterialDesign.MDI_VIEW_LIST));
         showThumbnails.getStyleClass().addAll("tool-bar-button", "show-thumbnails-button");
-        showThumbnails.setTooltip(new Tooltip("Show thumbnails"));
+        showThumbnails.setTooltip(new Tooltip(getString("pdf-view.tooltip.show-thumbnails")));
         showThumbnails.selectedProperty().bindBidirectional(pdfView.showThumbnailsProperty());
 
         // paging
         Button goLeft = new Button();
         goLeft.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_LEFT));
-        goLeft.setTooltip(new Tooltip("Show previous page"));
+        goLeft.setTooltip(new Tooltip(getString("pdf-view.tooltip.previous-page")));
         goLeft.setOnAction(evt -> view.gotoPreviousPage());
         goLeft.getStyleClass().addAll("tool-bar-button", "previous-page-button");
         goLeft.disableProperty().bind(Bindings.createBooleanBinding(() -> view.getPage() <= 0, view.pageProperty(), view.documentProperty()));
@@ -430,14 +447,14 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         Button goRight = new Button();
         goRight.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_RIGHT));
-        goRight.setTooltip(new Tooltip("Show next page"));
+        goRight.setTooltip(new Tooltip(getString("pdf-view.tooltip.next-page")));
         goRight.setOnAction(evt -> view.gotoNextPage());
         goRight.getStyleClass().addAll("tool-bar-button", "next-page-button");
         goRight.disableProperty().bind(Bindings.createBooleanBinding(() -> view.getDocument() == null || view.getDocument().getNumberOfPages() <= view.getPage() + 1, view.pageProperty(), view.documentProperty()));
         goRight.setMaxHeight(Double.MAX_VALUE);
 
         PageNumberTextField pageField = new PageNumberTextField();
-        pageField.setTooltip(new Tooltip("Current page number"));
+        pageField.setTooltip(new Tooltip(getString("pdf-view.tooltip.current-page")));
         pageField.getStyleClass().add("page-field");
         pageField.setMaxHeight(Double.MAX_VALUE);
         pageField.setAlignment(Pos.CENTER);
@@ -448,7 +465,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         view.documentProperty().addListener(it -> updateMaximumValue(pageField));
 
         Button totalPages = new Button();
-        totalPages.setTooltip(new Tooltip("Total number of pages"));
+        totalPages.setTooltip(new Tooltip(getString("pdf-view.tooltip.total-pages")));
         totalPages.getStyleClass().add("page-number-button");
         totalPages.setMaxHeight(Double.MAX_VALUE);
         totalPages.setAlignment(Pos.CENTER);
@@ -466,13 +483,13 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         // rotate buttons
         Button rotateLeft = new Button();
         rotateLeft.getStyleClass().addAll("tool-bar-button", "rotate-left");
-        rotateLeft.setTooltip(new Tooltip("Rotate page left"));
+        rotateLeft.setTooltip(new Tooltip(getString("pdf-view.tooltip.rotate-left")));
         rotateLeft.setGraphic(new FontIcon(MaterialDesign.MDI_ROTATE_LEFT));
         rotateLeft.setOnAction(evt -> view.rotateLeft());
 
         Button rotateRight = new Button();
         rotateRight.getStyleClass().addAll("tool-bar-button", "rotate-right");
-        rotateRight.setTooltip(new Tooltip("Rotate page right"));
+        rotateRight.setTooltip(new Tooltip(getString("pdf-view.tooltip.rotate-right")));
         rotateRight.setGraphic(new FontIcon(MaterialDesign.MDI_ROTATE_RIGHT));
         rotateRight.setOnAction(evt -> view.rotateRight());
 
@@ -483,17 +500,16 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         zoomSlider.valueProperty().bindBidirectional(view.zoomFactorProperty());
         zoomSlider.disableProperty().bind(view.showAllProperty());
 
-        Label zoomLabel = new Label("Zoom");
+        Label zoomLabel = new Label(getString("pdf-view.label.zoom"));
         zoomLabel.disableProperty().bind(view.showAllProperty());
 
         // search icon / field
         FontIcon searchClearIcon = new FontIcon(MaterialDesign.MDI_CLOSE_CIRCLE);
         searchClearIcon.visibleProperty().bind(view.searchTextProperty().isNotEmpty());
         searchClearIcon.setOnMouseClicked(evt -> view.setSearchText(null));
-        Tooltip.install(searchClearIcon, new Tooltip("Clear search text"));
+        Tooltip.install(searchClearIcon, new Tooltip(getString("pdf-view.tooltip.clear-search")));
 
         CustomTextField searchField = new CustomTextField();
-        searchField.setText("Search text");
         searchField.getStyleClass().add("search-field");
         searchField.addEventHandler(KeyEvent.KEY_PRESSED, evt -> {
             if (evt.getCode() == KeyCode.ESCAPE) {
@@ -502,7 +518,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         });
 
         searchField.setRight(searchClearIcon);
-        searchField.setPromptText("Search ...");
+        searchField.setPromptText(getString("pdf-view.search.prompt"));
         searchField.textProperty().bindBidirectional(view.searchTextProperty());
         searchField.managedProperty().bind(searchField.visibleProperty());
         searchField.visibleProperty().bind(Bindings.createBooleanBinding(() -> pdfView.getDocument() instanceof SearchableDocument, pdfView.documentProperty()));
@@ -531,12 +547,13 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         PDFView view = getSkinnable();
 
         Label searchLabel = new Label();
-        searchLabel.textProperty().bind(Bindings.createObjectBinding(() -> "Found " + view.getSearchResults().size() + " occurrences on " + pageSearchResults.size() + " pages", view.getSearchResults(), pageSearchResults));
+        String summaryPattern = getString("pdf-view.search.summary");
+        searchLabel.textProperty().bind(Bindings.createStringBinding(() -> MessageFormat.format(summaryPattern, view.getSearchResults().size(), pageSearchResults.size()), view.getSearchResults(), pageSearchResults));
         searchLabel.getStyleClass().add("search-result-label");
 
         Button previousResultButton = new Button();
         previousResultButton.getStyleClass().addAll("search-bar-button", "previous-search-result");
-        previousResultButton.setTooltip(new Tooltip("Go to previous search result"));
+        previousResultButton.setTooltip(new Tooltip(getString("pdf-view.tooltip.previous-search-result")));
         previousResultButton.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_LEFT));
         previousResultButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         previousResultButton.setOnAction(evt -> showPreviousSearchResult());
@@ -544,13 +561,13 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         Button nextResultButton = new Button();
         nextResultButton.getStyleClass().addAll("search-bar-button", "next-search-result");
-        nextResultButton.setTooltip(new Tooltip("Go to next search result"));
+        nextResultButton.setTooltip(new Tooltip(getString("pdf-view.tooltip.next-search-result")));
         nextResultButton.setGraphic(new FontIcon(MaterialDesign.MDI_CHEVRON_RIGHT));
         nextResultButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         nextResultButton.setOnAction(evt -> showNextSearchResult());
         nextResultButton.setMaxHeight(Double.MAX_VALUE);
 
-        Button doneButton = new Button("Done");
+        Button doneButton = new Button(getString("pdf-view.search.done"));
         doneButton.setOnAction(evt -> view.setSearchText(null));
         doneButton.getStyleClass().addAll("search-bar-button");
 
@@ -690,6 +707,13 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         private final Rectangle bouncer = new Rectangle();
         private ImageView imageView;
 
+        /*
+         * Set whenever the selected search result has to be scrolled into view. The flag gets
+         * consumed by the next layout pass of the wrapper, which is the earliest moment where
+         * the position of the marker within the (possibly re-rendered) page is known.
+         */
+        private boolean pendingSearchResultReveal;
+
         public MainAreaScrollPane() {
 
             PDFView pdfView = getSkinnable();
@@ -699,15 +723,33 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             bouncer.fillProperty().bind(pdfView.searchResultColorProperty());
             bouncer.visibleProperty().bind(pdfView.selectedSearchResultProperty().isNotNull());
 
-            pdfView.selectedSearchResultProperty().addListener(it -> bounceSearchResult());
+            pdfView.selectedSearchResultProperty().addListener(it -> {
+                pendingSearchResultReveal = pdfView.getSelectedSearchResult() != null;
+                bounceSearchResult();
+            });
             pdfView.getSearchResults().addListener((Observable it) -> mainAreaRenderService.restart());
             pdfView.selectionProperty().addListener((Observable it) -> mainAreaRenderService.restartLater());
 
             mainAreaRenderService.setOnSucceeded(evt -> {
                 double vValue = requestedVValue.get();
                 if (vValue != -1) {
-                    setVvalue(vValue);
+                    /*
+                     * A pending reveal of a search result wins over the value requested by
+                     * the paging logic, otherwise we would scroll to the top / bottom of the
+                     * page instead of scrolling to the search result.
+                     */
+                    if (!pendingSearchResultReveal) {
+                        setVvalue(vValue);
+                    }
                     requestedVValue.set(-1);
+                }
+
+                /*
+                 * The new page image is available now. Trigger a layout pass so that a pending
+                 * "scroll to search result" request can be processed.
+                 */
+                if (pendingSearchResultReveal) {
+                    MainAreaScrollPane.this.wrapper.requestLayout();
                 }
             });
 
@@ -791,38 +833,44 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                     SearchResult result = pdfView.getSelectedSearchResult();
                     if (result != null) {
 
+                        Image image = imageView.getImage();
+                        if (image == null) {
+                            return;
+                        }
+
                         Rectangle2D marker = result.getScaledMarker(pdfView.getPageScale() * pdfView.getZoomFactor());
-                        double scale = getWidth() / imageView.getImage().getWidth();
+                        double scale = getWidth() / image.getWidth();
 
                         if (marker != null) {
                             bouncer.setLayoutX(marker.getMinX() * scale);
                             bouncer.setLayoutY(marker.getMinY() * scale);
                             bouncer.setWidth(marker.getWidth() * scale);
                             bouncer.setHeight(marker.getHeight() * scale);
+
+                            /*
+                             * Only scroll once the page showing the result has actually been
+                             * rendered, otherwise the marker would be positioned based on the
+                             * image of the previously shown page.
+                             */
+                            if (pendingSearchResultReveal
+                                    && result.getPageNumber() == pdfView.getPage()
+                                    && !mainAreaRenderService.isRunning()) {
+
+                                pendingSearchResultReveal = false;
+
+                                /*
+                                 * The marker geometry is used directly (and not the bounds of the
+                                 * bouncer node) because the bouncer gets scaled up and down by the
+                                 * "bounce" animation, which would distort the target area.
+                                 */
+                                Bounds markerBounds = new BoundingBox(
+                                        bouncer.getLayoutX(), bouncer.getLayoutY(),
+                                        bouncer.getWidth(), bouncer.getHeight());
+
+                                Platform.runLater(() -> revealInWrapper(markerBounds));
+                            }
                         }
-                        Platform.runLater(() -> ensureVisible(bouncer));
                     }
-
-                }
-
-                private void ensureVisible(Node node) {
-                    Bounds viewport = getViewportBounds();
-
-                    double contentHeight = getContent().localToScene(getContent().getBoundsInLocal()).getHeight();
-                    double nodeMinY = node.localToScene(node.getBoundsInLocal()).getMinY();
-                    double nodeMaxY = node.localToScene(node.getBoundsInLocal()).getMaxY();
-
-                    double vValueCurrent = getVvalue();
-
-                    double vValueDelta = 0;
-
-                    if (nodeMaxY < Math.abs(viewport.getMinY())) {
-                        vValueDelta = (nodeMinY - viewport.getHeight()) / contentHeight;
-                    } else if (nodeMinY > viewport.getHeight() + viewport.getMinY()) {
-                        vValueDelta = (nodeMinY + viewport.getHeight()) / contentHeight;
-                    }
-
-                    setVvalue(vValueCurrent + vValueDelta);
                 }
             };
 
@@ -980,6 +1028,44 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         }
 
         private ParallelTransition parallel;
+
+        /**
+         * Scrolls the main area so that the given rectangle (expressed in the coordinate space
+         * of the {@link #wrapper}) becomes visible. Scrolling only happens if the rectangle is
+         * not fully visible already. In that case it will be centered within the viewport.
+         */
+        private void revealInWrapper(Bounds markerInWrapper) {
+            Node content = getContent();
+            if (content == null) {
+                return;
+            }
+
+            Bounds target = content.sceneToLocal(wrapper.localToScene(markerInWrapper));
+            Bounds viewport = getViewportBounds();
+            Bounds contentBounds = content.getLayoutBounds();
+
+            setVvalue(computeScrollValue(getVvalue(), target.getMinY(), target.getHeight(), contentBounds.getHeight(), viewport.getHeight()));
+            setHvalue(computeScrollValue(getHvalue(), target.getMinX(), target.getWidth(), contentBounds.getWidth(), viewport.getWidth()));
+        }
+
+        private double computeScrollValue(double currentValue, double targetMin, double targetSize, double contentSize, double viewportSize) {
+            double scrollable = contentSize - viewportSize;
+
+            if (scrollable <= 0) {
+                // the content fits into the viewport, nothing to scroll
+                return currentValue;
+            }
+
+            double visibleStart = currentValue * scrollable;
+            double visibleEnd = visibleStart + viewportSize;
+
+            if (targetMin >= visibleStart && targetMin + targetSize <= visibleEnd) {
+                return currentValue;
+            }
+
+            double centeredStart = targetMin + targetSize / 2 - viewportSize / 2;
+            return Math.max(0, Math.min(1, centeredStart / scrollable));
+        }
 
         private void bounceSearchResult() {
             if (parallel != null) {
@@ -1362,14 +1448,10 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
             if (item != null && !empty) {
 
-                pageLabel.setText("Page " + (item.getPageNumber() + 1));
+                pageLabel.setText(formatString("pdf-view.search.result.page", item.getPageNumber() + 1));
 
                 int matchCount = item.getItems().size();
-                if (matchCount == 1) {
-                    matchesLabel.setText("1 match");
-                } else {
-                    matchesLabel.setText(matchCount + " matches");
-                }
+                matchesLabel.setText(formatString("pdf-view.search.result.matches", matchCount));
 
                 String text = item.getItems().stream()
                         .filter(searchResult -> searchResult.getTextSnippet() != null)
