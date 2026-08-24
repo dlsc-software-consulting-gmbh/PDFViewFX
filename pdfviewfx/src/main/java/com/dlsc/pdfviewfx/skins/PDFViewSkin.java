@@ -145,10 +145,19 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                  * We have page search results and the current page changes. Let's make sure we select a
                  * matching page result, if one exits.
                  */
-                pageSearchResults.stream()
+                Optional<PageSearchResult> match = pageSearchResults.stream()
                         .filter(result -> result.getPageNumber() == view.getPage())
-                        .findFirst()
-                        .ifPresent(result -> searchResultListView.getSelectionModel().select(result));
+                        .findFirst();
+
+                if (match.isPresent()) {
+                    searchResultListView.getSelectionModel().select(match.get());
+                } else {
+                    /*
+                     * The current page does not have any search results. We clear the selection,
+                     * otherwise the list would keep highlighting a page that is not showing.
+                     */
+                    searchResultListView.getSelectionModel().clearSelection();
+                }
             }
         });
 
@@ -1331,6 +1340,19 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                 }
             });
 
+            /*
+             * A click always has to navigate to the page of the clicked result, even if the cell
+             * is already selected. Relying on the selection listener alone would turn such a click
+             * into a no-op (see issue #44).
+             */
+            setOnMouseClicked(evt -> {
+                PageSearchResult item = getItem();
+                if (item != null && !isEmpty()) {
+                    getSkinnable().setSelectedSearchResult(item.getItems().get(0));
+                    getSkinnable().setPage(item.getPageNumber());
+                }
+            });
+
             setPrefWidth(0);
         }
 
@@ -1423,6 +1445,18 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
 
             itemProperty().addListener(invalidationListener);
+
+            /*
+             * A click always has to show the clicked page, even if the cell is already selected.
+             * Relying on the selection listener alone would turn such a click into a no-op
+             * (see issue #44).
+             */
+            setOnMouseClicked(evt -> {
+                Integer pageNumber = getItem();
+                if (pageNumber != null && !isEmpty()) {
+                    getSkinnable().setPage(pageNumber);
+                }
+            });
 
             renderService.scaleProperty().bind(getSkinnable().thumbnailPageScaleProperty());
             renderService.valueProperty().addListener(it -> imageView.setImage(renderService.getValue()));
