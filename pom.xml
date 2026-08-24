@@ -47,7 +47,6 @@
     <properties>
         <javafx.version>23.0.2</javafx.version>
         <ikonli.version>12.4.0</ikonli.version>
-        <jaxb.version>2.3.3</jaxb.version>
         <project.identifier>gemsfx</project.identifier>
         <project.github.repository>dlsc-software-consulting-gmbh/GemsFX</project.github.repository>
         <local.repository.path>/tmp/repository</local.repository.path>
@@ -61,7 +60,7 @@
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox</artifactId>
-                <version>3.0.5</version>
+                <version>3.0.8</version>
             </dependency>
 
             <dependency>
@@ -79,7 +78,7 @@
             <dependency>
                 <groupId>org.controlsfx</groupId>
                 <artifactId>controlsfx</artifactId>
-                <version>11.1.2</version>
+                <version>11.2.4</version>
             </dependency>
 
             <dependency>
@@ -103,7 +102,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.13.0</version>
+                <version>3.20.0</version>
             </dependency>
 
             <!-- Testing -->
@@ -122,7 +121,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
