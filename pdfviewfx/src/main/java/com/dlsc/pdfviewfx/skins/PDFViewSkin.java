@@ -56,6 +56,12 @@ import java.util.stream.Collectors;
 
 public class PDFViewSkin extends SkinBase<PDFView> {
 
+    /*
+     * Aspect ratio (height / width) of an A4 page. Used for reserving space for thumbnails that
+     * have not been rendered, yet.
+     */
+    private static final double PAGE_ASPECT_RATIO = Math.sqrt(2);
+
     // Access to PDF document must be single threaded (see Apache PdfBox website FAQs)
     private final Executor EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, PDFView.class.getSimpleName() + " Thread");
@@ -152,7 +158,6 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             }
         });
 
-        view.documentProperty().addListener(it -> updatePagesList());
         updatePagesList();
 
         ToolBar toolBar = createToolBar(view);
@@ -182,11 +187,38 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         getChildren().add(borderPane);
 
+        /*
+         * A single listener ensures a well-defined order of the various updates that have to be
+         * performed when a new document gets loaded. Especially the image cache has to be cleared
+         * BEFORE the list of pages gets rebuilt, otherwise the thumbnail cells will briefly show
+         * the pages of the previously loaded document (the cache is keyed by page number only).
+         */
         view.documentProperty().addListener(it -> {
-            mainAreaScrollPane.setImage(null);
             imageCache.clear();
-            view.setPage(-1);
-            view.setPage(0);
+
+            int pageBefore = view.getPage();
+
+            /*
+             * Rebuilding the list of pages will select the first thumbnail, which in turn might
+             * already reset the current page (and hence trigger a re-rendering of the main area).
+             */
+            updatePagesList();
+
+            if (view.getDocument() == null) {
+                mainAreaScrollPane.setImage(null);
+                return;
+            }
+
+            /*
+             * The main area keeps showing the last rendered image until the first page of the new
+             * document has been rendered. This avoids a blank / flickering main area.
+             */
+            if (view.getPage() != 0) {
+                view.setPage(0);
+            } else if (pageBefore == 0) {
+                // the page did not change, so we have to trigger the re-rendering ourselves
+                mainAreaScrollPane.restartRendering();
+            }
         });
 
         view.searchTextProperty().addListener(it -> search());
@@ -997,6 +1029,10 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             this.image.set(image);
         }
 
+        private void restartRendering() {
+            mainAreaRenderService.restart();
+        }
+
         private Image getImage() {
             return image.get();
         }
@@ -1142,7 +1178,9 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         @Override
         protected Image call() {
-            if (page >= 0 && page < getSkinnable().getDocument().getNumberOfPages()) {
+            Document document = getSkinnable().getDocument();
+
+            if (document != null && page >= 0 && page < document.getNumberOfPages()) {
                 if (!isCancelled()) {
                     Image renderedImage = renderPDFPage(page, scale);
                     if (getSkinnable().isCacheThumbnails() && thumbnail) {
@@ -1215,12 +1253,22 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
     private void updatePagesList() {
         Document document = getSkinnable().getDocument();
-        pdfFilePages.clear();
+
+        List<Integer> pages = new ArrayList<>();
         if (document != null) {
             for (int i = 0; i < document.getNumberOfPages(); i++) {
-                pdfFilePages.add(i);
+                pages.add(i);
             }
         }
+
+        /*
+         * The list gets cleared first so that the cells of the list view will reliably reload
+         * their thumbnails, even if the new document happens to have the same number of pages
+         * as the previous one. Adding the pages in a single batch keeps the number of change
+         * events (and hence layout runs) down to a minimum.
+         */
+        pdfFilePages.clear();
+        pdfFilePages.addAll(pages);
     }
 
     class SearchResultListCell extends ListCell<PageSearchResult> {
@@ -1325,15 +1373,29 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         private final ImageView imageView = new ImageView();
         private final Label pageNumberLabel = new Label();
         private final RenderService renderService = new RenderService(true);
+        private final StackPane stackPane = new StackPane(imageView);
 
         public PdfPageListCell() {
-            StackPane stackPane = new StackPane(imageView);
             stackPane.getStyleClass().add("image-view-wrapper");
             stackPane.setMaxWidth(Region.USE_PREF_SIZE);
-            stackPane.visibleProperty().bind(imageView.imageProperty().isNotNull());
+
+            /*
+             * The wrapper reserves the space needed by the thumbnail image while the image is still
+             * being rendered in the background. Without this the cells would collapse to a height of
+             * zero and "jump" as soon as the images arrive, which looks like heavy flickering when a
+             * new document gets loaded.
+             */
+            stackPane.minHeightProperty().bind(Bindings.createDoubleBinding(() -> {
+                double size = getSkinnable().getThumbnailSize();
+                return isLandscapePage() ? size / PAGE_ASPECT_RATIO : size;
+            }, getSkinnable().thumbnailSizeProperty(), itemProperty(), getSkinnable().documentProperty()));
+
+            stackPane.minWidthProperty().bind(Bindings.createDoubleBinding(() -> {
+                double size = getSkinnable().getThumbnailSize();
+                return isLandscapePage() ? size : size / PAGE_ASPECT_RATIO;
+            }, getSkinnable().thumbnailSizeProperty(), itemProperty(), getSkinnable().documentProperty()));
 
             pageNumberLabel.getStyleClass().add("page-number-label");
-            pageNumberLabel.visibleProperty().bind(imageView.imageProperty().isNotNull());
 
             VBox vBox = new VBox(5, stackPane, pageNumberLabel);
             vBox.setAlignment(Pos.CENTER);
@@ -1366,12 +1428,18 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             renderService.valueProperty().addListener(it -> imageView.setImage(renderService.getValue()));
         }
 
+        private boolean isLandscapePage() {
+            Integer pageNumber = getItem();
+            Document document = getSkinnable().getDocument();
+            return pageNumber != null && document != null && pageNumber < document.getNumberOfPages() && document.isLandscape(pageNumber);
+        }
+
         @Override
         protected void updateItem(Integer pageNumber, boolean empty) {
             super.updateItem(pageNumber, empty);
 
             if (pageNumber != null && !empty) {
-                if (getSkinnable().getDocument().isLandscape(pageNumber)) {
+                if (isLandscapePage()) {
                     imageView.fitWidthProperty().bind(getSkinnable().thumbnailSizeProperty());
                     imageView.fitHeightProperty().unbind();
                 } else {
