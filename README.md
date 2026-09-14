@@ -49,6 +49,31 @@ Note that `PDFView.Document.getPageable()` is deprecated, because the pageable i
 resources that are never released. Use `PDFView.Document.createPageable()` instead, which returns a
 pageable that has to be closed by its caller.
 
+## Annotations
+
+The view supports reviewing a document: select some text and press a key (or use the context menu) to highlight
+it with a comment (`H`), strike it out (`S`), suggest a replacement (`R`) or an insertion after it (`I`). A sticky
+note can be placed at the position of the last click with `N`. The keys work while the page has the focus, i.e.
+after clicking on it. The context menu also offers to remove the last annotation.
+
+The annotations are stored as standard PDF annotations, so a saved document shows them in any PDF viewer:
+
+```java
+view.save(new File("reviewed.pdf"));
+```
+
+Applications can add annotations themselves via the observable list `view.getAnnotations()`; the markers use the
+coordinate space of `Selection.getMarker()`:
+
+```java
+Selection selection = view.getSelection();
+view.getAnnotations().add(new Annotation(Annotation.Type.HIGHLIGHT, selection.getPageNumber(), selection.getMarker(), "nice"));
+view.getAnnotations().removeLast();  // undo
+```
+
+The list is kept in sync with the document, which has to implement `PDFView.AnnotatableDocument` (as
+`PDFBoxDocument` does). Encrypted documents can not be saved.
+
 ## Internationalization
 
 All texts shown by the view (tooltips, labels, prompt text, search result summaries, context menu) are

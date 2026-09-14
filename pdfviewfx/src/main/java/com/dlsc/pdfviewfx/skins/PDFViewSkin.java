@@ -1,6 +1,8 @@
 package com.dlsc.pdfviewfx.skins;
 
+import com.dlsc.pdfviewfx.Annotation;
 import com.dlsc.pdfviewfx.PDFView;
+import com.dlsc.pdfviewfx.PDFView.AnnotatableDocument;
 import com.dlsc.pdfviewfx.PDFView.Document;
 import com.dlsc.pdfviewfx.PDFView.SearchResult;
 import com.dlsc.pdfviewfx.PDFView.SearchableDocument;
@@ -32,6 +34,7 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.*;
 import javafx.scene.control.skin.VirtualFlow;
@@ -64,6 +67,9 @@ public class PDFViewSkin extends SkinBase<PDFView> {
      */
     private static final double PAGE_ASPECT_RATIO = Math.sqrt(2);
 
+    // size of the icon of a note, in points
+    private static final double NOTE_SIZE = 20;
+
     // Access to PDF document must be single threaded (see Apache PdfBox website FAQs)
     private final Executor EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, PDFView.class.getSimpleName() + " Thread");
@@ -80,6 +86,9 @@ public class PDFViewSkin extends SkinBase<PDFView> {
     private final Map<Integer, Image> imageCache = new HashMap<>();
     
     private SelectionService selectionService = new SelectionService();
+
+    // where the user last pressed the mouse on the current page, in the coordinate space of Selection.getMarker()
+    private Point2D lastPressedPoint;
 
     /**
      * Returns the text stored for the given key in the resource bundle of the view.
@@ -194,6 +203,14 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         MainAreaScrollPane mainAreaScrollPane = new MainAreaScrollPane();
         VBox.setVgrow(mainAreaScrollPane, Priority.ALWAYS);
+
+        view.pageProperty().addListener(it -> lastPressedPoint = null);
+
+        ContextMenu contextMenu = view.getContextMenu();
+        if (contextMenu != null) {
+            contextMenu.getItems().add(new SeparatorMenuItem());
+            contextMenu.getItems().addAll(createAnnotationMenuItems(mainAreaScrollPane, contextMenu));
+        }
 
         VBox mainArea = new VBox(searchNavigator, mainAreaScrollPane);
         mainArea.getStyleClass().add("main-area");
@@ -615,6 +632,88 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         }
     }
 
+    private List<MenuItem> createAnnotationMenuItems(MainAreaScrollPane mainArea, ContextMenu contextMenu) {
+        PDFView view = getSkinnable();
+
+        BooleanBinding notAnnotatable = Bindings.createBooleanBinding(() -> !(view.getDocument() instanceof AnnotatableDocument), view.documentProperty());
+        BooleanBinding noMarkedText = notAnnotatable.or(Bindings.createBooleanBinding(() -> view.getSelection() == null || view.getSelection().getMarker().isEmpty(), view.selectionProperty()));
+
+        return List.of(
+                createAnnotationMenuItem(mainArea, contextMenu, "pdf-view.menu.highlight", KeyCode.H, noMarkedText, () -> annotate(Annotation.Type.HIGHLIGHT, "pdf-view.menu.highlight", "pdf-view.annotation.comment")),
+                createAnnotationMenuItem(mainArea, contextMenu, "pdf-view.menu.strike-out", KeyCode.S, noMarkedText, () -> annotate(Annotation.Type.STRIKE_OUT, null, null)),
+                createAnnotationMenuItem(mainArea, contextMenu, "pdf-view.menu.replace", KeyCode.R, noMarkedText, () -> annotate(Annotation.Type.REPLACE, "pdf-view.menu.replace", "pdf-view.annotation.replacement")),
+                createAnnotationMenuItem(mainArea, contextMenu, "pdf-view.menu.insert", KeyCode.I, noMarkedText, () -> annotate(Annotation.Type.INSERT, "pdf-view.menu.insert", "pdf-view.annotation.insertion")),
+                createAnnotationMenuItem(mainArea, contextMenu, "pdf-view.menu.note", KeyCode.N, notAnnotatable, this::addNote),
+                createAnnotationMenuItem(mainArea, contextMenu, "pdf-view.menu.remove-annotation", null, Bindings.isEmpty(view.getAnnotations()), () -> view.getAnnotations().removeLast()));
+    }
+
+    private MenuItem createAnnotationMenuItem(MainAreaScrollPane mainArea, ContextMenu contextMenu, String key, KeyCode keyCode, BooleanBinding disabled, Runnable action) {
+        MenuItem item = new MenuItem(getString(key));
+        item.disableProperty().bind(disabled);
+        if (keyCode != null) {
+            item.setAccelerator(new KeyCodeCombination(keyCode));
+        }
+        item.setOnAction(evt -> {
+            /*
+             * The accelerator is registered with the whole scene, so it also fires while the user types into a
+             * text field elsewhere in the application. Only react if the item was picked from the context menu
+             * or the page has the focus. The action runs later because the context menu is still showing while
+             * its item fires, and the action may open a dialog.
+             */
+            if (contextMenu.isShowing() || mainArea.isFocusWithin()) {
+                Platform.runLater(action);
+            }
+        });
+        return item;
+    }
+
+    private void annotate(Annotation.Type type, String titleKey, String promptKey) {
+        PDFView view = getSkinnable();
+        Selection selection = view.getSelection();
+        if (!(view.getDocument() instanceof AnnotatableDocument) || selection == null || selection.getMarker().isEmpty()) {
+            return;
+        }
+
+        String contents = null;
+        if (promptKey != null) {
+            Optional<String> text = showTextDialog(titleKey, promptKey);
+            if (text.isEmpty()) {
+                return;
+            }
+            contents = text.filter(value -> !value.isEmpty()).orElse(null);
+        }
+
+        view.getAnnotations().add(new Annotation(type, selection.getPageNumber(), selection.getMarker(), contents));
+
+        // the selection highlight would cover the new annotation
+        view.setSelection(null);
+    }
+
+    private void addNote() {
+        PDFView view = getSkinnable();
+        if (!(view.getDocument() instanceof AnnotatableDocument) || lastPressedPoint == null) {
+            return;
+        }
+
+        showTextDialog("pdf-view.menu.note", "pdf-view.annotation.note").filter(text -> !text.isEmpty()).ifPresent(text -> {
+            Rectangle2D marker = new Rectangle2D(lastPressedPoint.getX() - NOTE_SIZE / 2, lastPressedPoint.getY() - NOTE_SIZE / 2, NOTE_SIZE, NOTE_SIZE);
+            view.getAnnotations().add(new Annotation(Annotation.Type.NOTE, view.getPage(), List.of(marker), text));
+        });
+    }
+
+    /**
+     * Asks the user for a text. The result is empty if the dialog was cancelled, otherwise it holds the
+     * (possibly empty) stripped text.
+     */
+    private Optional<String> showTextDialog(String titleKey, String promptKey) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(getSkinnable().getScene().getWindow());
+        dialog.setTitle(getString(titleKey));
+        dialog.setHeaderText(null);
+        dialog.setContentText(getString(promptKey));
+        return dialog.showAndWait().map(String::strip);
+    }
+
     private void updateMaximumValue(PageNumberTextField pageField) {
         Document document = getSkinnable().getDocument();
         if (document != null) {
@@ -740,6 +839,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             });
             pdfView.getSearchResults().addListener((Observable it) -> mainAreaRenderService.restart());
             pdfView.selectionProperty().addListener((Observable it) -> mainAreaRenderService.restartLater());
+            pdfView.getAnnotations().addListener((Observable it) -> mainAreaRenderService.restartLater());
 
             mainAreaRenderService.setOnSucceeded(evt -> {
                 double vValue = requestedVValue.get();
@@ -904,8 +1004,23 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
             group = new Group(wrapper);
             pane.getChildren().addAll(group);
+
+            /*
+             * The page wrapper holds the focus for the annotation keys. The behavior of the scroll pane
+             * requests the focus for the scroll pane itself on every mouse press it sees, which would show a
+             * focus ring around the whole area.
+             */
+            focusedProperty().addListener(it -> {
+                if (isFocused()) {
+                    wrapper.requestFocus();
+                }
+            });
             
             group.addEventHandler(MouseEvent.MOUSE_PRESSED, evt -> {
+                // the annotation shortcuts only work while the page has the focus
+                wrapper.requestFocus();
+                lastPressedPoint = getMouseEventPoint(evt);
+
                 if (evt.getButton() == MouseButton.PRIMARY) {
                     group.setCursor(Cursor.TEXT);
                     selectionService.setStart(getMouseEventPoint(evt));

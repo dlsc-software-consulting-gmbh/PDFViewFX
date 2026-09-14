@@ -56,7 +56,8 @@ public class SelectionExtractor extends PDFTextStripper {
         TextLine startLine = getFirstLineAt(start.getY());
         TextLine endLine = getLastLineAt(end.getY());
         StringBuilder selectionText = new StringBuilder();
-        if (startLine != null && endLine != null) {
+        // a click into the gap between two lines finds the line below as start and the line above as end
+        if (startLine != null && endLine != null && lines.indexOf(startLine) <= lines.indexOf(endLine)) {
             if (startLine == endLine) {
                 startLine.collectSelection(start.getX(), end.getX(), mode, selectionRectangles, selectionText);
             } else {
