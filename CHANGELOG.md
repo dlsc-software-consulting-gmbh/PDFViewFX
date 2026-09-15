@@ -10,6 +10,8 @@
   Applications can add annotations programmatically via `PDFView.getAnnotations()`; documents that support this
   implement `PDFView.AnnotatableDocument`.
 * A click into the empty space between two lines no longer selects text.
+* Text selection respects two-column layouts: a selection stays within its column, a selection across the
+  columns follows the reading order.
 * `PDFBoxDocument` now reads files into memory instead of keeping them open, so that a document can be saved to
   the file it was loaded from.
 * Improved printing (#30):
