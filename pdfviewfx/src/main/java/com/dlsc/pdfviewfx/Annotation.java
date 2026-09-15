@@ -1,6 +1,7 @@
 package com.dlsc.pdfviewfx;
 
 import javafx.geometry.Rectangle2D;
+import javafx.scene.paint.Color;
 
 import java.util.List;
 import java.util.Objects;
@@ -15,8 +16,9 @@ import java.util.Objects;
  *                   of the note icon for {@link Type#NOTE}
  * @param contents   the text of the annotation, i.e. the comment, the replacement text or the text to insert,
  *                   may be null
+ * @param color      the color of the annotation, null for the default color of its type
  */
-public record Annotation(Type type, int pageNumber, List<Rectangle2D> markers, String contents) {
+public record Annotation(Type type, int pageNumber, List<Rectangle2D> markers, String contents, Color color) {
 
     /**
      * The kinds of annotations that can be added to a document.
@@ -52,5 +54,12 @@ public record Annotation(Type type, int pageNumber, List<Rectangle2D> markers, S
     public Annotation {
         Objects.requireNonNull(type, "type can not be null");
         markers = List.copyOf(markers);
+    }
+
+    /**
+     * Creates an annotation in the default color of its type.
+     */
+    public Annotation(Type type, int pageNumber, List<Rectangle2D> markers, String contents) {
+        this(type, pageNumber, markers, contents, null);
     }
 }

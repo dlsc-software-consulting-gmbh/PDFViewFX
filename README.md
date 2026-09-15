@@ -52,9 +52,11 @@ pageable that has to be closed by its caller.
 ## Annotations
 
 The view supports reviewing a document: select some text and press a key (or use the context menu) to highlight
-it with a comment (`H`), strike it out (`S`), suggest a replacement (`R`) or an insertion after it (`I`). A sticky
-note can be placed at the position of the last click with `N`. The keys work while the page has the focus, i.e.
-after clicking on it. The context menu also offers to remove the last annotation.
+it (`A`, as in SumatraPDF), strike it out (`S`), suggest a replacement (`R`) or an insertion after it (`I`). A sticky
+note can be placed at the position of the last click with `N`. A small editor pops up next to the new annotation
+for choosing its color, entering a comment (or the replacement / inserted text) and for deleting it again. The keys
+work while the page has the focus, i.e. after clicking on it. The context menu also offers to remove the last
+annotation.
 
 The annotations are stored as standard PDF annotations, so a saved document shows them in any PDF viewer:
 

@@ -4,7 +4,8 @@
 
 * Added annotations (#47): text selected on a page can be highlighted (with a comment), struck out, marked for
   replacement or for an insertion, and sticky notes can be placed anywhere on a page. The tools are available in
-  the context menu and via the keys `H`, `S`, `R`, `I` and `N` while the page has the focus. The annotations are
+  the context menu and via the keys `A`, `S`, `R`, `I` and `N` while the page has the focus; an editor next to the
+  new annotation takes its color and text. The annotations are
   stored as standard PDF annotations, so `PDFView.save(File)` writes a document that other viewers understand.
   Applications can add annotations programmatically via `PDFView.getAnnotations()`; documents that support this
   implement `PDFView.AnnotatableDocument`.

@@ -8,6 +8,7 @@ import com.dlsc.pdfviewfx.PDFView.SelectableDocument;
 import com.dlsc.pdfviewfx.impl.SelectionExtractor;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.paint.Color;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -274,19 +275,20 @@ public class PDFBoxDocument implements SearchableDocument, SelectableDocument, A
         AffineTransform toUserSpace = createUserSpaceTransform(page);
 
         List<PDAnnotation> created = switch (annotation.type()) {
-            case HIGHLIGHT -> List.of(createTextMarkup(new PDAnnotationHighlight(), annotation.markers(), toUserSpace, YELLOW, annotation.contents()));
-            case STRIKE_OUT -> List.of(createTextMarkup(new PDAnnotationStrikeout(), annotation.markers(), toUserSpace, RED, annotation.contents()));
-            case INSERT -> List.of(createCaret(annotation.markers(), toUserSpace, annotation.contents()));
+            case HIGHLIGHT -> List.of(createTextMarkup(new PDAnnotationHighlight(), annotation.markers(), toUserSpace, toPDColor(annotation.color(), YELLOW), annotation.contents()));
+            case STRIKE_OUT -> List.of(createTextMarkup(new PDAnnotationStrikeout(), annotation.markers(), toUserSpace, toPDColor(annotation.color(), RED), annotation.contents()));
+            case INSERT -> List.of(createCaret(annotation.markers(), toUserSpace, toPDColor(annotation.color(), BLUE), annotation.contents()));
             case REPLACE -> {
                 // stored the way Acrobat does it: the caret carries the new text, the strikeout is grouped with it
-                PDAnnotationCaret caret = createCaret(annotation.markers(), toUserSpace, annotation.contents());
+                PDColor color = toPDColor(annotation.color(), RED);
+                PDAnnotationCaret caret = createCaret(annotation.markers(), toUserSpace, color, annotation.contents());
                 caret.setIntent("Replace");
-                PDAnnotationTextMarkup strikeout = createTextMarkup(new PDAnnotationStrikeout(), annotation.markers(), toUserSpace, RED, null);
+                PDAnnotationTextMarkup strikeout = createTextMarkup(new PDAnnotationStrikeout(), annotation.markers(), toUserSpace, color, null);
                 strikeout.setInReplyTo(caret);
                 strikeout.setReplyType("Group");
                 yield List.of(caret, strikeout);
             }
-            case NOTE -> List.of(createNote(annotation.markers(), toUserSpace, annotation.contents()));
+            case NOTE -> List.of(createNote(annotation.markers(), toUserSpace, toPDColor(annotation.color(), YELLOW), annotation.contents()));
         };
 
         try {
@@ -331,21 +333,28 @@ public class PDFBoxDocument implements SearchableDocument, SelectableDocument, A
         return configure(markup, color, contents);
     }
 
-    private static PDAnnotationCaret createCaret(List<Rectangle2D> markers, AffineTransform toUserSpace, String contents) {
+    private static PDColor toPDColor(Color color, PDColor defaultColor) {
+        if (color == null) {
+            return defaultColor;
+        }
+        return new PDColor(new float[]{(float) color.getRed(), (float) color.getGreen(), (float) color.getBlue()}, PDDeviceRGB.INSTANCE);
+    }
+
+    private static PDAnnotationCaret createCaret(List<Rectangle2D> markers, AffineTransform toUserSpace, PDColor color, String contents) {
         // the caret sits on the bottom edge of the marked text, centered on its end
         Rectangle2D end = markers.getLast();
         Rectangle2D marker = new Rectangle2D(end.getMaxX() - CARET_SIZE / 2, end.getMaxY() - CARET_SIZE, CARET_SIZE, CARET_SIZE);
 
         PDAnnotationCaret caret = new PDAnnotationCaret();
         caret.setRectangle(bounds(toUserSpace(List.of(marker), toUserSpace)));
-        return configure(caret, BLUE, contents);
+        return configure(caret, color, contents);
     }
 
-    private static PDAnnotationText createNote(List<Rectangle2D> markers, AffineTransform toUserSpace, String contents) {
+    private static PDAnnotationText createNote(List<Rectangle2D> markers, AffineTransform toUserSpace, PDColor color, String contents) {
         PDAnnotationText note = new PDAnnotationText();
         note.setName(PDAnnotationText.NAME_COMMENT);
         note.setRectangle(bounds(toUserSpace(markers, toUserSpace)));
-        return configure(note, YELLOW, contents);
+        return configure(note, color, contents);
     }
 
     private static <T extends PDAnnotationMarkup> T configure(T markup, PDColor color, String contents) {

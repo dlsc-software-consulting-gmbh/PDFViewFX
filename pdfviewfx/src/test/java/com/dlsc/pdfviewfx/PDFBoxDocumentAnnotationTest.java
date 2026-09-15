@@ -2,6 +2,7 @@ package com.dlsc.pdfviewfx;
 
 import com.dlsc.pdfviewfx.Annotation.Type;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.paint.Color;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -57,7 +58,7 @@ public class PDFBoxDocumentAnnotationTest {
         PDFBoxDocument document = createDocument(0);
 
         try {
-            document.addAnnotation(new Annotation(Type.HIGHLIGHT, 0, List.of(LINE), "looks good"));
+            document.addAnnotation(new Annotation(Type.HIGHLIGHT, 0, List.of(LINE), "looks good", Color.LIME));
 
             try (PDDocument saved = saveAndReload(document)) {
                 List<PDAnnotation> annotations = saved.getPage(0).getAnnotations();
@@ -66,6 +67,7 @@ public class PDFBoxDocumentAnnotationTest {
                 PDAnnotationTextMarkup highlight = (PDAnnotationTextMarkup) annotations.get(0);
                 assertEquals("Highlight", highlight.getSubtype());
                 assertEquals("looks good", highlight.getContents());
+                assertArrayEquals(new float[]{0, 1, 0}, highlight.getColor().getComponents(), 0.001f);
                 assertNotNull("other viewers need the appearance stream", highlight.getNormalAppearanceStream());
 
                 // upper left, upper right, lower left, lower right, with the origin in the lower left corner of the page
