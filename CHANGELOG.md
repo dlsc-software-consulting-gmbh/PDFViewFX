@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+* Added annotations (#47): text selected on a page can be highlighted (with a comment), struck out, marked for
+  replacement or for an insertion, and sticky notes can be placed anywhere on a page. The tools are available in
+  the context menu and via the keys `A`, `S`, `R`, `I` and `N` while the page has the focus; an editor next to the
+  new annotation takes its color and text. The annotations are
+  stored as standard PDF annotations, so `PDFView.save(File)` writes a document that other viewers understand.
+  Applications can add annotations programmatically via `PDFView.getAnnotations()`; documents that support this
+  implement `PDFView.AnnotatableDocument`.
+* A click into the empty space between two lines no longer selects text.
+* Text selection respects two-column layouts: a selection stays within its column, a selection across the
+  columns follows the reading order.
+* `PDFBoxDocument` now reads files into memory instead of keeping them open, so that a document can be saved to
+  the file it was loaded from.
 * Improved printing (#30):
   * added `PDFView.print()` / `PDFView.print(Window)`, so applications no longer have to implement the
     printing themselves.

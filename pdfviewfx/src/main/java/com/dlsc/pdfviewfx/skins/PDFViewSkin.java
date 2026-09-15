@@ -1,6 +1,8 @@
 package com.dlsc.pdfviewfx.skins;
 
+import com.dlsc.pdfviewfx.Annotation;
 import com.dlsc.pdfviewfx.PDFView;
+import com.dlsc.pdfviewfx.PDFView.AnnotatableDocument;
 import com.dlsc.pdfviewfx.PDFView.Document;
 import com.dlsc.pdfviewfx.PDFView.SearchResult;
 import com.dlsc.pdfviewfx.PDFView.SearchableDocument;
@@ -16,12 +18,14 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
@@ -32,7 +36,9 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.control.*;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.image.Image;
@@ -40,9 +46,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeType;
 import javafx.util.Duration;
 import org.apache.commons.lang3.StringUtils;
+import org.controlsfx.control.PopOver;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
@@ -64,6 +73,12 @@ public class PDFViewSkin extends SkinBase<PDFView> {
      */
     private static final double PAGE_ASPECT_RATIO = Math.sqrt(2);
 
+    // size of the icon of a note, in points
+    private static final double NOTE_SIZE = 20;
+
+    // the colors offered for annotations
+    private static final List<Color> PALETTE = List.of(Color.YELLOW, Color.LIGHTGREEN, Color.LIGHTSKYBLUE, Color.LIGHTCORAL, Color.PLUM);
+
     // Access to PDF document must be single threaded (see Apache PdfBox website FAQs)
     private final Executor EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, PDFView.class.getSimpleName() + " Thread");
@@ -80,6 +95,13 @@ public class PDFViewSkin extends SkinBase<PDFView> {
     private final Map<Integer, Image> imageCache = new HashMap<>();
     
     private SelectionService selectionService = new SelectionService();
+
+    // where the user last pressed the mouse on the current page, in the coordinate space of Selection.getMarker()
+    private Point2D lastPressedPoint;
+
+    private MainAreaScrollPane mainArea;
+
+    private AnnotationPopOver annotationPopOver;
 
     /**
      * Returns the text stored for the given key in the resource bundle of the view.
@@ -192,12 +214,23 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
         HBox searchNavigator = createSearchNavigator();
 
-        MainAreaScrollPane mainAreaScrollPane = new MainAreaScrollPane();
-        VBox.setVgrow(mainAreaScrollPane, Priority.ALWAYS);
+        mainArea = new MainAreaScrollPane();
+        VBox.setVgrow(mainArea, Priority.ALWAYS);
 
-        VBox mainArea = new VBox(searchNavigator, mainAreaScrollPane);
-        mainArea.getStyleClass().add("main-area");
-        mainArea.setFillWidth(true);
+        view.pageProperty().addListener(it -> {
+            lastPressedPoint = null;
+            hideAnnotationPopOver();
+        });
+
+        ContextMenu contextMenu = view.getContextMenu();
+        if (contextMenu != null) {
+            contextMenu.getItems().add(new SeparatorMenuItem());
+            contextMenu.getItems().addAll(createAnnotationMenuItems(contextMenu));
+        }
+
+        VBox mainAreaBox = new VBox(searchNavigator, mainArea);
+        mainAreaBox.getStyleClass().add("main-area");
+        mainAreaBox.setFillWidth(true);
 
         StackPane leftSide = new StackPane(thumbnailListView, searchResultListView);
         leftSide.getStyleClass().add("tray");
@@ -208,7 +241,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         borderPane.getStyleClass().add("border-pane");
         borderPane.setTop(toolBar);
         borderPane.setLeft(leftSide);
-        borderPane.setCenter(mainArea);
+        borderPane.setCenter(mainAreaBox);
         borderPane.setFocusTraversable(false);
 
         getChildren().add(borderPane);
@@ -230,8 +263,10 @@ public class PDFViewSkin extends SkinBase<PDFView> {
              */
             updatePagesList();
 
+            hideAnnotationPopOver();
+
             if (view.getDocument() == null) {
-                mainAreaScrollPane.setImage(null);
+                mainArea.setImage(null);
                 return;
             }
 
@@ -243,7 +278,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                 view.setPage(0);
             } else if (pageBefore == 0) {
                 // the page did not change, so we have to trigger the re-rendering ourselves
-                mainAreaScrollPane.restartRendering();
+                mainArea.restartRendering();
             }
         });
 
@@ -615,6 +650,182 @@ public class PDFViewSkin extends SkinBase<PDFView> {
         }
     }
 
+    private List<MenuItem> createAnnotationMenuItems(ContextMenu contextMenu) {
+        PDFView view = getSkinnable();
+
+        BooleanBinding notAnnotatable = Bindings.createBooleanBinding(() -> !(view.getDocument() instanceof AnnotatableDocument), view.documentProperty());
+        BooleanBinding noMarkedText = notAnnotatable.or(Bindings.createBooleanBinding(() -> view.getSelection() == null || view.getSelection().getMarker().isEmpty(), view.selectionProperty()));
+
+        return List.of(
+                createAnnotationMenuItem(contextMenu, "pdf-view.menu.highlight", KeyCode.A, noMarkedText, () -> annotate(Annotation.Type.HIGHLIGHT, Color.YELLOW, "pdf-view.annotation.comment")),
+                createAnnotationMenuItem(contextMenu, "pdf-view.menu.strike-out", KeyCode.S, noMarkedText, () -> annotate(Annotation.Type.STRIKE_OUT, Color.LIGHTCORAL, "pdf-view.annotation.comment")),
+                createAnnotationMenuItem(contextMenu, "pdf-view.menu.replace", KeyCode.R, noMarkedText, () -> annotate(Annotation.Type.REPLACE, Color.LIGHTCORAL, "pdf-view.annotation.replacement")),
+                createAnnotationMenuItem(contextMenu, "pdf-view.menu.insert", KeyCode.I, noMarkedText, () -> annotate(Annotation.Type.INSERT, Color.LIGHTSKYBLUE, "pdf-view.annotation.insertion")),
+                createAnnotationMenuItem(contextMenu, "pdf-view.menu.note", KeyCode.N, notAnnotatable, this::addNote),
+                createAnnotationMenuItem(contextMenu, "pdf-view.menu.remove-annotation", null, Bindings.isEmpty(view.getAnnotations()), () -> view.getAnnotations().removeLast()));
+    }
+
+    private MenuItem createAnnotationMenuItem(ContextMenu contextMenu, String key, KeyCode keyCode, BooleanBinding disabled, Runnable action) {
+        MenuItem item = new MenuItem(getString(key));
+        item.disableProperty().bind(disabled);
+        if (keyCode != null) {
+            item.setAccelerator(new KeyCodeCombination(keyCode));
+        }
+        item.setOnAction(evt -> {
+            /*
+             * The accelerator is registered with the whole scene, so it also fires while the user types into a
+             * text field elsewhere in the application. Only react if the item was picked from the context menu
+             * or the page has the focus. The action runs later because the context menu is still showing while
+             * its item fires, and the action opens a pop over.
+             */
+            if (contextMenu.isShowing() || mainArea.isFocusWithin()) {
+                Platform.runLater(action);
+            }
+        });
+        return item;
+    }
+
+    private void annotate(Annotation.Type type, Color color, String promptKey) {
+        PDFView view = getSkinnable();
+        Selection selection = view.getSelection();
+        if (!(view.getDocument() instanceof AnnotatableDocument) || selection == null || selection.getMarker().isEmpty()) {
+            return;
+        }
+
+        Annotation annotation = new Annotation(type, selection.getPageNumber(), selection.getMarker(), null, color);
+        view.getAnnotations().add(annotation);
+
+        // the selection highlight would cover the new annotation
+        view.setSelection(null);
+
+        showAnnotationPopOver(annotation, promptKey);
+    }
+
+    private void addNote() {
+        PDFView view = getSkinnable();
+        if (!(view.getDocument() instanceof AnnotatableDocument) || lastPressedPoint == null) {
+            return;
+        }
+
+        Rectangle2D marker = new Rectangle2D(lastPressedPoint.getX() - NOTE_SIZE / 2, lastPressedPoint.getY() - NOTE_SIZE / 2, NOTE_SIZE, NOTE_SIZE);
+        Annotation annotation = new Annotation(Annotation.Type.NOTE, view.getPage(), List.of(marker), null, Color.YELLOW);
+        view.getAnnotations().add(annotation);
+
+        showAnnotationPopOver(annotation, "pdf-view.annotation.note");
+    }
+
+    private void showAnnotationPopOver(Annotation annotation, String promptKey) {
+        hideAnnotationPopOver();
+
+        Rectangle2D marker = annotation.markers().getLast();
+        Point2D anchor = mainArea.toScreen(new Point2D(marker.getMinX() + marker.getWidth() / 2, marker.getMaxY()));
+
+        annotationPopOver = new AnnotationPopOver(annotation, promptKey);
+        annotationPopOver.show(mainArea, anchor.getX(), anchor.getY(), Duration.ZERO);
+    }
+
+    private void hideAnnotationPopOver() {
+        if (annotationPopOver != null) {
+            annotationPopOver.hide();
+            annotationPopOver = null;
+        }
+    }
+
+    /**
+     * The editor shown below a freshly added annotation: its color, its text and a button for deleting it again.
+     * The text is applied when the pop over gets closed, in whichever way.
+     */
+    private class AnnotationPopOver extends PopOver {
+
+        private final ObservableList<Annotation> annotations = getSkinnable().getAnnotations();
+        private final TextField textField = new TextField();
+        private final HBox colors = new HBox(6);
+
+        private Annotation annotation;
+
+        AnnotationPopOver(Annotation annotation, String promptKey) {
+            this.annotation = annotation;
+
+            for (Color color : PALETTE) {
+                Circle circle = new Circle(8, color);
+                circle.setStrokeType(StrokeType.INSIDE);
+                circle.setStrokeWidth(2);
+                circle.setOnMouseClicked(evt -> {
+                    replace(new Annotation(annotation.type(), annotation.pageNumber(), annotation.markers(), this.annotation.contents(), color));
+                    updateSelectedColor();
+                });
+                colors.getChildren().add(circle);
+            }
+            updateSelectedColor();
+
+            textField.setPromptText(getString(promptKey));
+            textField.setPrefColumnCount(20);
+            textField.setOnAction(evt -> hide());
+
+            Button delete = new Button(getString("pdf-view.annotation.delete"));
+            delete.setOnAction(evt -> {
+                annotations.remove(this.annotation);
+                this.annotation = null;
+                hide();
+            });
+
+            Button done = new Button(getString("pdf-view.search.done"));
+            done.setDefaultButton(true);
+            done.setOnAction(evt -> hide());
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            VBox content = new VBox(8, colors, textField, new HBox(10, delete, spacer, done));
+            content.setPadding(new Insets(10));
+            content.getStyleClass().add("annotation-editor");
+
+            setContentNode(content);
+            setArrowLocation(ArrowLocation.TOP_CENTER);
+            setDetachable(false);
+            setHeaderAlwaysVisible(false);
+            setCloseButtonEnabled(false);
+            setAutoHide(true);
+            setAnimated(false);
+            setOnShown(evt -> textField.requestFocus());
+            setOnHidden(evt -> applyText());
+        }
+
+        private void updateSelectedColor() {
+            colors.getChildren().forEach(node -> {
+                Circle circle = (Circle) node;
+                circle.setStroke(circle.getFill().equals(annotation.color()) ? Color.BLACK : null);
+            });
+        }
+
+        private void applyText() {
+            if (annotation == null) {
+                // deleted
+                return;
+            }
+
+            String contents = textField.getText().strip();
+            if (contents.isEmpty()) {
+                contents = null;
+            }
+
+            boolean needsText = annotation.type() == Annotation.Type.REPLACE || annotation.type() == Annotation.Type.INSERT;
+            if (contents == null && needsText) {
+                annotations.remove(annotation);
+            } else if (!Objects.equals(contents, annotation.contents())) {
+                replace(new Annotation(annotation.type(), annotation.pageNumber(), annotation.markers(), contents, annotation.color()));
+            }
+        }
+
+        private void replace(Annotation replacement) {
+            int index = annotations.indexOf(annotation);
+            if (index >= 0) {
+                annotations.set(index, replacement);
+            }
+            annotation = replacement;
+        }
+    }
+
     private void updateMaximumValue(PageNumberTextField pageField) {
         Document document = getSkinnable().getDocument();
         if (document != null) {
@@ -740,6 +951,11 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             });
             pdfView.getSearchResults().addListener((Observable it) -> mainAreaRenderService.restart());
             pdfView.selectionProperty().addListener((Observable it) -> mainAreaRenderService.restartLater());
+            /*
+             * A change listener, not an invalidation listener: invalidation listeners fire first, but the
+             * document has to be updated by the change listener of the view before the page gets re-rendered.
+             */
+            pdfView.getAnnotations().addListener((ListChangeListener<Annotation>) change -> mainAreaRenderService.restartLater());
 
             mainAreaRenderService.setOnSucceeded(evt -> {
                 double vValue = requestedVValue.get();
@@ -904,8 +1120,23 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
             group = new Group(wrapper);
             pane.getChildren().addAll(group);
+
+            /*
+             * The page wrapper holds the focus for the annotation keys. The behavior of the scroll pane
+             * requests the focus for the scroll pane itself on every mouse press it sees, which would show a
+             * focus ring around the whole area.
+             */
+            focusedProperty().addListener(it -> {
+                if (isFocused()) {
+                    wrapper.requestFocus();
+                }
+            });
             
             group.addEventHandler(MouseEvent.MOUSE_PRESSED, evt -> {
+                // the annotation shortcuts only work while the page has the focus
+                wrapper.requestFocus();
+                lastPressedPoint = getMouseEventPoint(evt);
+
                 if (evt.getButton() == MouseButton.PRIMARY) {
                     group.setCursor(Cursor.TEXT);
                     selectionService.setStart(getMouseEventPoint(evt));
@@ -1027,6 +1258,14 @@ public class PDFViewSkin extends SkinBase<PDFView> {
             layoutImage();
         }
         
+        /**
+         * Converts a point in the coordinate space of {@link Selection#getMarker()} to screen coordinates.
+         */
+        private Point2D toScreen(Point2D point) {
+            double scale = mainAreaRenderService.getScale() * wrapper.getWidth() / imageView.getImage().getWidth();
+            return wrapper.localToScreen(point.getX() * scale, point.getY() * scale);
+        }
+
         private Point2D getMouseEventPoint(MouseEvent evt) {
             double ImageToWrapperRatio = imageView.getImage().getWidth() / wrapper.getWidth();
             Point3D point = evt.getPickResult().getIntersectedPoint();
