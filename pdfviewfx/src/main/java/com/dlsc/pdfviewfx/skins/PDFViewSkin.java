@@ -32,7 +32,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.*;
 import javafx.scene.control.skin.VirtualFlow;
@@ -730,13 +729,6 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
             PDFView pdfView = getSkinnable();
 
-            MenuItem copyMenuItem = new MenuItem(getString("pdf-view.menu.copy"));
-            copyMenuItem.disableProperty().bind(pdfView.selectionProperty().isNull());
-            copyMenuItem.setOnAction(e -> pdfView.copy());
-            copyMenuItem.setAccelerator(KeyCombination.keyCombination("Shortcut+C"));
-            setContextMenu(new ContextMenu(copyMenuItem));
-
-
             bouncer.getStyleClass().add("bouncer");
             bouncer.setManaged(false);
             bouncer.setMouseTransparent(true);
@@ -843,7 +835,8 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                     e.printStackTrace();
                 }
             });
-            
+
+                    
             wrapper = new StackPane() {
                 @Override
                 protected void layoutChildren() {
