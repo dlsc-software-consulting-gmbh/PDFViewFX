@@ -842,8 +842,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                     e.printStackTrace();
                 }
             });
-
-
+            
             wrapper = new StackPane() {
                 @Override
                 protected void layoutChildren() {
