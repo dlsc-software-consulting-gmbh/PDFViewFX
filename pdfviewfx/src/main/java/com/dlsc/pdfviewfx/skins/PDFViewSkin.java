@@ -912,7 +912,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
                     selectionService.setEnd(getMouseEventPoint(evt));
                     selectionService.setMode(Selection.Mode.forClickCount(evt.getClickCount()));
                     selectionService.restartLater();
-                    // Do not consume, we want to get focus (Issue #49)
+                    evt.consume();
                 }
             });
             
