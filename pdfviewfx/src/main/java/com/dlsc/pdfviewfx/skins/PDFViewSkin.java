@@ -739,6 +739,7 @@ public class PDFViewSkin extends SkinBase<PDFView> {
 
             bouncer.getStyleClass().add("bouncer");
             bouncer.setManaged(false);
+            bouncer.setMouseTransparent(true);
             bouncer.fillProperty().bind(pdfView.searchResultColorProperty());
             bouncer.visibleProperty().bind(pdfView.selectedSearchResultProperty().isNotNull());
 
