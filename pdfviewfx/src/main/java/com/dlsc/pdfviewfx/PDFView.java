@@ -136,12 +136,6 @@ public class PDFView extends Control {
 
             setSearchText(null);
         });
-
-        MenuItem copyMenuItem = new MenuItem(getString("pdf-view.menu.copy"));
-        copyMenuItem.disableProperty().bind(selection.isNull());
-        copyMenuItem.setOnAction(e -> copy());
-        copyMenuItem.setAccelerator(KeyCombination.keyCombination("Shortcut+C"));
-        setContextMenu(new ContextMenu(copyMenuItem));
     }
 
     @Override
