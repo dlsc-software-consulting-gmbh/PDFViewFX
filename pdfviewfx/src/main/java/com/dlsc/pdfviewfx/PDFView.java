@@ -18,13 +18,10 @@ import javafx.css.converter.ColorConverter;
 import javafx.css.converter.SizeConverter;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Skin;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.paint.Color;
 import javafx.stage.Window;
 
@@ -136,12 +133,6 @@ public class PDFView extends Control {
 
             setSearchText(null);
         });
-
-        MenuItem copyMenuItem = new MenuItem(getString("pdf-view.menu.copy"));
-        copyMenuItem.disableProperty().bind(selection.isNull());
-        copyMenuItem.setOnAction(e -> copy());
-        copyMenuItem.setAccelerator(KeyCombination.keyCombination("Shortcut+C"));
-        setContextMenu(new ContextMenu(copyMenuItem));
     }
 
     @Override
