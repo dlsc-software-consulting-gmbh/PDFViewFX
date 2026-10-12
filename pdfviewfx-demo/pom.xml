@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>PDFViewFXDemo</name>
-    <version>3.5.0</version>
+    <name>PDFViewDemo</name>
+    <version>3.6.0</version>
     <groupId>com.dlsc.pdfviewfx</groupId>
     <artifactId>pdfviewfx-demo</artifactId>
 
@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.dlsc.pdfviewfx</groupId>
         <artifactId>parent</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -60,7 +60,7 @@
         <dependency>
             <groupId>com.dlsc.pdfviewfx</groupId>
             <artifactId>pdfviewfx</artifactId>
-            <version>3.5.0</version>
+            <version>3.6.0</version>
         </dependency>
 
         <dependency>
