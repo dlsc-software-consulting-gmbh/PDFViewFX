@@ -58,6 +58,19 @@ public class PDFViewApp extends Application {
             e.printStackTrace();
         }
 
+        MenuItem saveItem = new MenuItem("Save PDF As...");
+        saveItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+s"));
+        saveItem.setOnAction(evt -> {
+            FileChooser saveChooser = new FileChooser();
+            saveChooser.setTitle("Save PDF File");
+            saveChooser.getExtensionFilters().add(new ExtensionFilter("PDF Files", "*.pdf"));
+            File file = saveChooser.showSaveDialog(primaryStage);
+            if (file != null) {
+                pdfView.save(file);
+            }
+        });
+        saveItem.disableProperty().bind(Bindings.isNull(pdfView.documentProperty()));
+
         MenuItem closeItem = new MenuItem("Close PDF");
         closeItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+w"));
         closeItem.setOnAction(evt -> pdfView.unload());
@@ -71,6 +84,7 @@ public class PDFViewApp extends Application {
         Menu fileMenu = new Menu("File");
         ObservableList<MenuItem> fileMenuItems = fileMenu.getItems();
         fileMenuItems.add(loadItem);
+        fileMenuItems.add(saveItem);
         fileMenuItems.add(closeItem);
         fileMenuItems.add(new SeparatorMenuItem());
         fileMenuItems.add(printItem);

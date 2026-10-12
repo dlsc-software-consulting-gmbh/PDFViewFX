@@ -6,6 +6,7 @@ import com.dlsc.pdfviewfx.skins.PDFViewSkin;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
@@ -32,8 +33,12 @@ import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
 import java.awt.print.Printable;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -135,6 +140,16 @@ public class PDFView extends Control {
             }
 
             setSearchText(null);
+            annotations.clear();
+        });
+
+        annotations.addListener((ListChangeListener<Annotation>) change -> {
+            if (getDocument() instanceof AnnotatableDocument annotatable) {
+                while (change.next()) {
+                    change.getRemoved().forEach(annotatable::removeAnnotation);
+                    change.getAddedSubList().forEach(annotatable::addAnnotation);
+                }
+            }
         });
 
         MenuItem copyMenuItem = new MenuItem(getString("pdf-view.menu.copy"));
@@ -910,7 +925,49 @@ public class PDFView extends Control {
     public final void setSelectionColor(Color selectionColor) {
         this.selectionColor.set(selectionColor);
     }
-    
+
+    // annotations
+
+    private final ObservableList<Annotation> annotations = FXCollections.observableArrayList();
+
+    /**
+     * The annotations that have been added to the currently loaded document. Adding an annotation to this list
+     * adds it to the document, provided the document is an {@link AnnotatableDocument}, removing it removes it
+     * from the document again. The list gets cleared whenever a new document is loaded.
+     *
+     * @return the annotations added to the current document
+     * @see #save(File)
+     */
+    public final ObservableList<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    /**
+     * Saves the currently loaded document, including its annotations, to the given file. The PDF is generated in
+     * memory before the file gets written, so a document that can not be serialized does not leave a truncated
+     * file behind. The method blocks until the file has been written.
+     *
+     * @param file the file to write
+     * @throws IllegalStateException       if no document is loaded or the document is not an {@link AnnotatableDocument}
+     * @throws DocumentProcessingException if the document can not be written
+     */
+    public final void save(File file) {
+        Objects.requireNonNull(file, "file can not be null");
+
+        if (!(getDocument() instanceof AnnotatableDocument annotatable)) {
+            throw new IllegalStateException("the loaded document can not be saved");
+        }
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        annotatable.save(buffer);
+
+        try {
+            Files.write(file.toPath(), buffer.toByteArray());
+        } catch (IOException e) {
+            throw new DocumentProcessingException(e);
+        }
+    }
+
     /**
      * Loads the given PDF file.
      *
@@ -1173,6 +1230,37 @@ public class PDFView extends Control {
      */
     public interface SelectableDocument extends Document {
         Selection getSelection(int pageNumber, Point2D start, Point2D end, Selection.Mode mode);
+    }
+
+    /**
+     * Documents that support adding annotations and saving the result need to implement this interface. The
+     * view keeps the list returned by {@link PDFView#getAnnotations()} in sync with the document, so applications
+     * only work with that list.
+     */
+    public interface AnnotatableDocument extends Document {
+
+        /**
+         * Adds the given annotation to the page it belongs to.
+         *
+         * @param annotation the annotation to add
+         */
+        void addAnnotation(Annotation annotation);
+
+        /**
+         * Removes an annotation that was added via {@link #addAnnotation(Annotation)}. Unknown annotations are
+         * ignored.
+         *
+         * @param annotation the annotation to remove
+         */
+        void removeAnnotation(Annotation annotation);
+
+        /**
+         * Writes the document, including the added annotations, to the given stream. The stream is not closed.
+         *
+         * @param out the stream to write to
+         * @throws DocumentProcessingException if the document can not be written
+         */
+        void save(OutputStream out);
     }
 
     private static class StyleableProperties {
