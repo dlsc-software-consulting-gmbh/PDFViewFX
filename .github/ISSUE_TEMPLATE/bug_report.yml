@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a problem in PDFViewFX.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the problem you are seeing.
+      placeholder: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: repro_steps
+    attributes:
+      label: Reproduction steps
+      description: List the steps needed to reproduce the problem.
+      placeholder: 1. ...
+    validations:
+      required: true
+  - type: input
+    id: pdfviewfx_version
+    attributes:
+      label: PDFViewFX version
+      description: Tell us which PDFViewFX version is affected.
+      placeholder: e.g. 1.2.3
+    validations:
+      required: true
+  - type: input
+    id: operating_system
+    attributes:
+      label: Operating system
+      description: Tell us which operating system you are using.
+      placeholder: e.g. macOS 15.0
+    validations:
+      required: true
+  - type: textarea
+    id: jdk_javafx_versions
+    attributes:
+      label: JDK and JavaFX versions
+      description: Share the JDK and JavaFX versions you used.
+      placeholder: JDK 21, JavaFX 21
+    validations:
+      required: true
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+      description: Describe what you expected to happen.
+      placeholder: The control should...
+    validations:
+      required: true
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual behavior
+      description: Describe what actually happened.
+      placeholder: Instead, it...
+    validations:
+      required: true
+  - type: textarea
+    id: logs_or_screenshots
+    attributes:
+      label: Logs or screenshots
+      description: Add any logs, stack traces, or screenshots that help explain the issue.
+      placeholder: Paste logs or attach screenshots here.
+    validations:
+      required: false

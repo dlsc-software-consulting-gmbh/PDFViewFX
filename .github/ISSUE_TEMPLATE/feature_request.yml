@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest an improvement or new capability for PDFViewFX.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem_use_case
+    attributes:
+      label: Problem or use case
+      description: Explain the problem you want to solve or the use case you have.
+      placeholder: I need...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_behavior
+    attributes:
+      label: Proposed behavior
+      description: Describe the behavior you would like to see.
+      placeholder: The control should...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Share other approaches you considered, if any.
+      placeholder: I also considered...
+    validations:
+      required: false
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add any extra context, mockups, or references that could help.
+      placeholder: Additional details here.
+    validations:
+      required: false

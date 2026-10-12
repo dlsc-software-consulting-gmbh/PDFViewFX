@@ -23,12 +23,20 @@
     <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX</url>
     <licenses>
         <license>
-            <name>Apache 2.0</name>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/dlsc-software-consulting-gmbh/PdfViewFX</url>
+        <connection>scm:git:https://github.com/dlsc-software-consulting-gmbh/PDFViewFX.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/dlsc-software-consulting-gmbh/PDFViewFX.git</developerConnection>
+        <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX</url>
     </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX/issues</url>
+    </issueManagement>
 
     <properties>
         <main.class>com.dlsc.pdfviewfx.demo.PDFViewApp</main.class>

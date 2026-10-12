@@ -4,6 +4,27 @@
 
 A custom control that allows an application to display PDF files. The control utilizes Apache's PDFBox project.
 
+## Project information
+
+- Current project version: `com.dlsc.pdfviewfx:pdfviewfx:3.5.0`
+- Requires JDK 21
+- Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
+- Project governance and contribution documents:
+  - [Contributing](CONTRIBUTING.md)
+  - [Code of Conduct](CODE_OF_CONDUCT.md)
+  - [Security Policy](SECURITY.md)
+  - [Changelog](CHANGELOG.md)
+
+### Maven dependency
+
+```xml
+<dependency>
+    <groupId>com.dlsc.pdfviewfx</groupId>
+    <artifactId>pdfviewfx</artifactId>
+    <version>3.5.0</version>
+</dependency>
+```
+
 ![PDFView](docs/images/pdf-view.png)
 
 ## Search
