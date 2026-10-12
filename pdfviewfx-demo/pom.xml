@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>PDFViewDemo</name>
+    <name>PDFViewFXDemo</name>
     <version>3.5.0</version>
     <groupId>com.dlsc.pdfviewfx</groupId>
     <artifactId>pdfviewfx-demo</artifactId>
@@ -23,12 +23,20 @@
     <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX</url>
     <licenses>
         <license>
-            <name>Apache 2.0</name>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/dlsc-software-consulting-gmbh/PdfViewFX</url>
+        <connection>scm:git:https://github.com/dlsc-software-consulting-gmbh/PDFViewFX.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/dlsc-software-consulting-gmbh/PDFViewFX.git</developerConnection>
+        <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX</url>
     </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX/issues</url>
+    </issueManagement>
 
     <properties>
         <main.class>com.dlsc.pdfviewfx.demo.PDFViewApp</main.class>

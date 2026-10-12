@@ -27,7 +27,8 @@
 
     <licenses>
         <license>
-            <name>Apache 2.0</name>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
 
@@ -41,14 +42,21 @@
     </developers>
 
     <scm>
+        <connection>scm:git:https://github.com/dlsc-software-consulting-gmbh/PDFViewFX.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/dlsc-software-consulting-gmbh/PDFViewFX.git</developerConnection>
         <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX</url>
     </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/dlsc-software-consulting-gmbh/PDFViewFX/issues</url>
+    </issueManagement>
 
     <properties>
         <javafx.version>23.0.2</javafx.version>
         <ikonli.version>12.4.0</ikonli.version>
-        <project.identifier>gemsfx</project.identifier>
-        <project.github.repository>dlsc-software-consulting-gmbh/GemsFX</project.github.repository>
+        <project.identifier>pdfviewfx</project.identifier>
+        <project.github.repository>dlsc-software-consulting-gmbh/PDFViewFX</project.github.repository>
         <local.repository.path>/tmp/repository</local.repository.path>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

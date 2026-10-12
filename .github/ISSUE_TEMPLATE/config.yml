@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Read the README
+    url: https://github.com/dlsc-software-consulting-gmbh/PDFViewFX/blob/master/README.md
+    about: Review the project overview and usage information before opening an issue.
+  - name: Review SECURITY.md
+    url: https://github.com/dlsc-software-consulting-gmbh/PDFViewFX/blob/master/SECURITY.md
+    about: Use the private security reporting process for vulnerabilities.
